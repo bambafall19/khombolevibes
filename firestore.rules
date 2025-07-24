@@ -1,0 +1,98 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions to check request context
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      // For this app, we consider any signed-in user as an admin.
+      return isSignedIn();
+    }
+
+    // ARTICLES: Public read, admin write
+    match /articles/{articleId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // CATEGORIES: Public read, admin write
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // COMMENTS: Public read, anyone can create
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if false; // Comments are immutable
+    }
+
+    // MEDIA: Public read, admin write
+    match /media/{mediaId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // TEAMS: Public read, admin write
+    match /teams/{teamId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ADMIN-ONLY COLLECTIONS
+    match /navetane_poules/{pouleId} {
+      allow read, write: if isAdmin();
+    }
+    match /navetane_coupe_matches/{matchId} {
+      allow read, write: if isAdmin();
+    }
+    match /navetane_preliminary_match/{docId} {
+      allow read, write: if isAdmin();
+    }
+    match /finals_admin_data/{docId} {
+      allow read, write: if isAdmin();
+    }
+    match /sponsors/{sponsorId} {
+      allow read, write: if isAdmin();
+    }
+
+    // PUBLIC VIEW COLLECTIONS (public read, admin write)
+    match /navetane_public_views/{viewId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /sponsors_public_view/{viewId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /finals_public_view/{viewId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // NAVETANE STATS (Split permissions)
+    match /navetane_stats/{docId} {
+      // Allow anyone to read the public data, but only admin can read admin_data
+      allow read: if docId == 'public_view' || isAdmin();
+      // Only admin can write to any document in this collection
+      allow write: if isAdmin();
+    }
+
+    // POLLS: Public read, secure voting (update only), admin create/delete
+    match /polls/{pollId} {
+      allow read: if true;
+      allow create, delete: if isAdmin(); // Admins can create/delete polls (e.g. when editing an article)
+      
+      // Allow anyone to update a poll IF:
+      // 1. They are only changing the `options` and `totalVotes` fields.
+      // 2. The `totalVotes` is only increasing by 1.
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['options', 'totalVotes'])
+                      && request.resource.data.totalVotes == resource.data.totalVotes + 1;
+    }
+  }
+}

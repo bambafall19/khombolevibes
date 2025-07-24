@@ -1,0 +1,37 @@
+
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# Firebase
+.firebase/
+*.__hosting_settings.json
+firebase-debug.log*
+
+# Next.js build output
+/.next/
+/out/
+
+# Production
+/build
+
+# Vercel
+.vercel
+
+# IDX
+.idx/
+
+# Misc
+.DS_Store
+*.pem
+*.log
+
+# Local .env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

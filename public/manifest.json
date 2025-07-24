@@ -1,0 +1,24 @@
+
+{
+  "name": "KhomboleVibes",
+  "short_name": "KhomboleVibes",
+  "description": "La plateforme d’actualités locales pour la ville de Khombole au Sénégal. Restez informé sur l'actualité, le sport, la culture et plus encore.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "https://i.imgur.com/wDBBEc9.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://i.imgur.com/wDBBEc9.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
