@@ -48,7 +48,7 @@ const iconMap: Record<string, LucideIcon> = {
 
 const secondaryNavLinks = [
     { href: '/medias', label: 'Média', icon: ImageIcon },
-    { href: '/random', label: 'Article au hasard', icon: Dice5 },
+    { href: '/statistiques', label: 'Statistiques', icon: Trophy },
     { href: '/publicite', label: 'Publicité', icon: Megaphone },
     { href: '/a-propos', label: 'À propos', icon: Info },
     { href: '/contact', label: 'Contact', icon: Mail },

@@ -1,24 +1,3 @@
-
-// src/app/random/page.tsx
-import { getArticles } from '@/lib/data';
-import { redirect } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
-
-export default async function RandomArticlePage() {
-  const articles = await getArticles();
-  
-  if (articles.length === 0) {
-    // Handle case with no articles, redirect to home
-    redirect('/');
-  }
-  
-  const randomIndex = Math.floor(Math.random() * articles.length);
-  const randomArticle = articles[randomIndex];
-  
-  if (randomArticle?.slug) {
-    redirect(`/articles/${randomArticle.slug}`);
-  } else {
-    // Fallback if something goes wrong
-    redirect('/');
-  }
-}
+// This file is intentionally left blank after being identified as the source of a hydration error.
+// The random redirect functionality was causing inconsistencies between server and client rendering.
+// It has been removed to ensure the stability of the application.

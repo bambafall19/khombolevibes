@@ -22,6 +22,7 @@ import {
   Menu,
   Dice5,
   Shield,
+  ImageIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
@@ -44,13 +45,13 @@ const iconMap: Record<string, LucideIcon> = {
     'a-propos': Info,
     'contact': Mail,
     'statistiques': Trophy,
-    'random': Dice5,
+    'medias': ImageIcon,
 };
 
 const secondaryNavLinks = [
     { href: '/medias', slug: 'medias', label: 'Média' },
     { href: '/portraits', slug: 'portraits', label: 'Portraits' },
-    { href: '/random', slug: 'random', label: 'Article au hasard' },
+    { href: '/statistiques', slug: 'statistiques', label: 'Statistiques' },
     { href: '/publicite', slug: 'publicite', label: 'Publicité' },
     { href: '/a-propos', slug: 'a-propos', label: 'À propos' },
     { href: '/contact', slug: 'contact', label: 'Contact' },
