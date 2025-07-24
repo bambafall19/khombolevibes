@@ -564,6 +564,61 @@ export async function addComment(commentData: { articleId: string; name: string;
   };
 }
 
+export async function getCommentsForArticle(articleId: string): Promise<Comment[]> {
+    const commentsCollection = collection(db, 'comments');
+    const q = query(
+      commentsCollection,
+      where('articleId', '==', articleId),
+    );
+
+    try {
+        const snapshot = await getDocs(q);
+        
+        if (snapshot.empty) {
+          return [];
+        }
+        
+        const comments = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            createdAt: (data.createdAt as Timestamp).toDate().toISOString(),
+          } as Comment;
+        });
+
+        // Sort comments manually after fetching to avoid complex Firestore indexes
+        comments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        
+        return comments;
+
+    } catch (error) {
+        console.error("Error fetching comments:", error);
+        return [];
+    }
+}
+
+export async function getPollForArticle(articleId: string): Promise<Poll | null> {
+    const pollsCollection = collection(db, 'polls');
+    const q = query(pollsCollection, where('articleId', '==', articleId));
+    
+    try {
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+            return null;
+        }
+        const pollDoc = snapshot.docs[0];
+        return { id: pollDoc.id, ...pollDoc.data() } as Poll;
+
+    } catch (error) {
+        console.error("Error fetching poll for article:", error);
+        // This can happen if the required index is not created in Firestore.
+        // Return null to allow the page to render without a poll.
+        return null;
+    }
+}
+
 
 // --- PUBLIC VIEW DATA ---
 const navetanePublicViewDoc = doc(db, 'navetane_public_views', 'live');

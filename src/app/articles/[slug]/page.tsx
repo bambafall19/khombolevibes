@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { getArticleBySlug, getArticles } from '@/lib/data';
-import { getPollForArticle, getCommentsForArticle } from '@/lib/actions';
+import { getArticleBySlug, getArticles, getPollForArticle, getCommentsForArticle } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { format } from 'date-fns';
