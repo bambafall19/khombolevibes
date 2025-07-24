@@ -31,7 +31,6 @@ export const metadata: Metadata = {
     template: '%s | KhomboleVibes',
   },
   description: 'La plateforme d’actualités locales pour la ville de Khombole au Sénégal. Restez informé sur l\'actualité, le sport, la culture et plus encore.',
-  manifest: '/manifest.json',
   icons: {
     icon: 'https://i.imgur.com/QWcnbtr.jpeg',
     apple: 'https://i.imgur.com/QWcnbtr.jpeg',
