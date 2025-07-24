@@ -2,7 +2,6 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  output: 'export', // <= THIS IS THE IMPORTANT CHANGE
   /* config options here */
   typescript: {
     ignoreBuildErrors: true,
