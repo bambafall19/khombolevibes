@@ -171,7 +171,7 @@ export default function ManageNavetanePage() {
 
   useEffect(() => {
     fetchData();
-  }, [toast]);
+  }, []);
 
   // --- Handlers for Poules ---
   const handlePouleSubmit = async (values: PouleFormData) => {
@@ -229,7 +229,7 @@ export default function ManageNavetanePage() {
   };
 
   const handleDeleteTeam = async (poule: NavetanePoule, teamId: string) => {
-    const updatedTeams = poule.teams.filter(t => t.id !== teamId);
+    const updatedTeams = (poule.teams || []).filter(t => t.id !== teamId);
     await updateNavetanePoule(poule.id, { teams: updatedTeams });
     toast({ title: "Équipe supprimée" });
     fetchData();
