@@ -436,8 +436,18 @@ export async function addNavetanePoule(poule: Omit<NavetanePoule, 'id' | 'teams'
     return await addDoc(collection(db, 'navetane_poules'), { ...poule, teams: [] });
 }
 
-export async function updateNavetanePoule(id: string, poule: Partial<NavetanePoule>) {
-    return await updateDoc(doc(db, 'navetane_poules', id), poule);
+export async function updateNavetanePoule(id: string, poule: Partial<Omit<NavetanePoule, 'id'>>) {
+    const dataToUpdate: Partial<Omit<NavetanePoule, 'id'>> = {};
+    if (poule.name) {
+        dataToUpdate.name = poule.name;
+    }
+    if (poule.teams) {
+        // Ensure we are not sending undefined fields to Firestore
+        dataToUpdate.teams = poule.teams.map(({ id: teamId, team, logoUrl, pts, j, g, n, p, db }) => ({
+             id: teamId, team, logoUrl: logoUrl || '', pts, j, g, n, p, db
+        }));
+    }
+    return await updateDoc(doc(db, 'navetane_poules', id), dataToUpdate);
 }
 
 export async function deleteNavetanePoule(id: string) {
