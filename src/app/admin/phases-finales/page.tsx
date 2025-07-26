@@ -80,7 +80,7 @@ const BracketStageEditor = ({
         <div>
             <div className="flex justify-between items-center mb-4">
                 <h3 className="font-bold text-lg">{title}</h3>
-                <Button variant="outline" size="sm" onClick={onAdd}><PlusCircle className="mr-2 h-4 w-4"/>Ajouter Match</Button>
+                <Button variant="outline" size="sm" onClick={onAdd}><PlusCircle className="mr-2 h-4 h-4"/>Ajouter Match</Button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {safeMatches.map((match) => (
