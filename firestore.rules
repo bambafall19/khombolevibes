@@ -1,80 +1,83 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Default deny all reads and writes
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
-    // Public read for collections needed by server components and clients
+  
+    // Accès public en lecture, écriture sécurisée pour les administrateurs
     match /articles/{document=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
+    
     match /categories/{document=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
-    match /polls/{document=**} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
+
     match /media/{document=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
+    
     match /teams/{document=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
-     match /sponsors/{document=**} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-    match /sponsors_public_view/{document=**} {
-        allow read: if true;
-        allow write: if request.auth != null;
-    }
-    match /navetane_public_views/{document=**} {
-        allow read: if true;
-        allow write: if request.auth != null;
-    }
-     match /navetane_stats/{document=**} {
-        allow read: if true;
-        allow write: if request.auth != null;
-    }
-     match /finals_public_view/{document=**} {
-        allow read: if true;
-        allow write: if request.auth != null;
-    }
-
-
-    // Collections that only admins can write to, but are needed for publishing server-side
+    
     match /navetane_poules/{document=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
+    
     match /navetane_coupe_matches/{document=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
+
     match /navetane_preliminary_match/{document=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
+    
+    match /navetane_stats/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    match /sponsors/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    match /sponsors_public_view/{document=**} {
+        allow read: if true;
+        allow write: if request.auth != null;
+    }
+    
+    match /navetane_public_views/{document=**} {
+        allow read: if true;
+        allow write: if request.auth != null;
+    }
+
     match /finals_admin_data/{document=**} {
         allow read: if true;
         allow write: if request.auth != null;
     }
 
-    // Comments can be created by anyone, but only admins can modify/delete (via console for now)
-    match /comments/{commentId} {
+    match /finals_public_view/{document=**} {
+        allow read: if true;
+        allow write: if request.auth != null;
+    }
+
+    match /polls/{document=**} {
       allow read: if true;
-      allow create: if true;
-      allow update, delete: if request.auth != null;
+      allow write: if true; // Permet aux utilisateurs de voter
+    }
+
+    match /comments/{document=**} {
+      allow read: if true;
+      allow create: if true; // Tout le monde peut créer un commentaire
+      allow update, delete: if request.auth != null; // Seuls les admins peuvent modérer
     }
   }
 }
