@@ -36,6 +36,7 @@ export default async function MediaPage() {
                       alt={item.title}
                       data-ai-hint={item.thumbnailHint}
                       fill
+                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -65,6 +66,7 @@ export default async function MediaPage() {
                             src={url}
                             alt={`${item.title} - Image ${index + 1}`}
                             fill
+                            sizes="100vw"
                             className="object-contain"
                           />
                       </div>

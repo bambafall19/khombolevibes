@@ -1,24 +1,47 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
   
-    // Règle générale : la lecture est publique, l'écriture est réservée aux admins
-    match /{document=**} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
+    // Règle générale : la plupart des collections sont en lecture seule pour le public,
+    // mais entièrement modifiables par un administrateur authentifié.
     
-    // Exception pour les commentaires : tout le monde peut en créer
-    match /comments/{commentId} {
-      allow read, create: if true;
-      allow update, delete: if request.auth != null; // ... mais seuls les admins peuvent modérer
+    function isAdmin() {
+      return request.auth != null;
     }
+
+    // Collections principales
+    match /articles/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /categories/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /media/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /teams/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /sponsors/{docId} { allow read: if true; allow write: if isAdmin(); }
+
+    // Collections Navétane
+    match /navetane_poules/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /navetane_coupe_matches/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /navetane_preliminary_match/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /navetane_stats/{docId} { allow read: if true; allow write: if isAdmin(); }
     
-    // Exception pour les sondages : tout le monde peut voter (écrire)
+    // Collections "public_view" gérées par l'admin
+    match /navetane_public_views/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /sponsors_public_view/{docId} { allow read: if true; allow write: if isAdmin(); }
+    
+    // Collections des phases finales
+    match /finals_admin_data/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /finals_public_view/{docId} { allow read: if true; allow write: if isAdmin(); }
+
+    // Collections avec des permissions d'écriture publiques spécifiques
     match /polls/{pollId} {
+      // Tout le monde peut lire les sondages et y voter (write).
       allow read, write: if true;
+    }
+
+    match /comments/{commentId} {
+      // Tout le monde peut lire et créer des commentaires.
+      allow read, create: if true;
+      // Seul un admin peut modifier ou supprimer un commentaire (modération).
+      allow update, delete: if isAdmin();
     }
   }
 }
