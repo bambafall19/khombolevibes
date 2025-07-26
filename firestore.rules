@@ -3,74 +3,82 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
   
-    // --- Publicly readable data ---
-    // Articles, categories, public media, comments, and published views are readable by anyone.
-    match /articles/{document=**} {
+    // --- Default Rule: Secure by default ---
+    // Deny all reads and writes by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Publicly Readable Data ---
+    // All collections are publicly readable so server-side rendering works.
+    // Write access is what we restrict.
+    match /articles/{doc=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
-    match /categories/{document=**} {
+    match /categories/{doc=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
-     match /media/{document=**} {
+    match /media/{doc=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
-    match /sponsors_public_view/{document=**} {
+    match /teams/{doc=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /sponsors/{doc=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /navetane_poules/{doc=**} {
         allow read: if true;
         allow write: if request.auth != null;
     }
-     match /navetane_public_views/{document=**} {
+    match /navetane_coupe_matches/{doc=**} {
         allow read: if true;
         allow write: if request.auth != null;
     }
-    match /navetane_stats/public_view {
+     match /navetane_preliminary_match/{doc=**} {
         allow read: if true;
         allow write: if request.auth != null;
     }
-    match /finals_public_view/{document=**} {
-      allow read: if true;
-      allow write: if request.auth != null;
+     match /finals_admin_data/{doc=**} {
+        allow read: if true;
+        allow write: if request.auth != null;
     }
-    match /teams/{document=**} {
-      allow read: if true;
-      allow write: if request.auth != null;
+    match /navetane_stats/{doc=**} {
+        allow read: if true;
+        allow write: if request.auth != null;
     }
-    match /polls/{pollId} {
+
+    // --- Public View Data ---
+    // These are explicitly for public consumption.
+    match /sponsors_public_view/{doc=**} {
+        allow read: if true;
+        allow write: if request.auth != null; // Only admin can publish
+    }
+    match /navetane_public_views/{doc=**} {
+        allow read: if true;
+        allow write: if request.auth != null; // Only admin can publish
+    }
+    match /finals_public_view/{doc=**} {
       allow read: if true;
-      allow create: if request.auth != null;
-      allow update: if true; // Anyone can vote
-      allow delete: if request.auth != null;
+      allow write: if request.auth != null; // Only admin can publish
     }
 
     // --- User-submittable data ---
-    // Anyone can create comments.
+    // Anyone can create comments and vote on polls
     match /comments/{comment} {
         allow read: if true;
         allow create: if true;
         allow update, delete: if request.auth != null;
     }
-    
-    // --- Admin-only writable/readable data ---
-    // These collections are primarily for admin use.
-    match /sponsors/{document=**} {
-      allow read, write: if request.auth != null;
-    }
-    match /navetane_poules/{document=**} {
-      allow read, write: if request.auth != null;
-    }
-    match /navetane_coupe_matches/{document=**} {
-      allow read, write: if request.auth != null;
-    }
-    match /navetane_preliminary_match/{document=**} {
-      allow read, write: if request.auth != null;
-    }
-     match /navetane_stats/admin_data {
-        allow read, write: if request.auth != null;
-    }
-     match /finals_admin_data/{document=**} {
-      allow read, write: if request.auth != null;
+    match /polls/{pollId} {
+      allow read: if true;
+      allow create, delete: if request.auth != null; // Only admin can create/delete polls
+      allow update: if true; // Anyone can vote (update vote counts)
     }
   }
 }
