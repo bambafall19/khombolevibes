@@ -2,28 +2,25 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Règle par défaut : autoriser la lecture publique, restreindre l'écriture aux utilisateurs authentifiés.
-    // Cette règle unique couvre toutes les collections et tous les documents.
-    // C'est nécessaire car le rendu côté serveur dans Next.js/Vercel
-    // effectue des requêtes non authentifiées vers Firestore pour récupérer les données des pages.
-    match /{path=**} {
+  
+    // Règle globale : la lecture est publique, l'écriture nécessite une authentification
+    // Ceci est la règle la plus simple et la plus sûre pour votre application.
+    match /{document=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
 
-    // Exception pour les commentaires : tout le monde peut en créer.
-    // Seuls les administrateurs (authentifiés) peuvent les modérer.
+    // Cas spéciaux pour les commentaires et les votes
+    // où même les non-admins doivent pouvoir écrire.
     match /comments/{commentId} {
-      allow create: if true;
-      allow read: if true;
+      // Tout le monde peut lire et créer, seuls les admins peuvent modifier/supprimer.
+      allow read, create: if true;
       allow update, delete: if request.auth != null;
     }
 
-    // Exception pour les sondages : tout le monde peut voter (ce qui est une écriture).
     match /polls/{pollId} {
-        allow read: if true;
-        allow write: if true;
+        // Tout le monde peut lire et écrire (pour pouvoir voter)
+        allow read, write: if true;
     }
   }
 }
