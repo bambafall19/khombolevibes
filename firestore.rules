@@ -1,12 +1,24 @@
+
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // PUBLIC READ, ADMIN WRITE
+
+    // Default deny all reads and writes
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Public read for collections needed by server components and clients
     match /articles/{document=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
     match /categories/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /polls/{document=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
@@ -18,43 +30,19 @@ service cloud.firestore {
       allow read: if true;
       allow write: if request.auth != null;
     }
-     match /polls/{document=**} {
+     match /sponsors/{document=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
-
-    // PUBLIC READ AND WRITE FOR ADMINS, used for navetane pages
-    match /navetane_poules/{document=**} {
-       allow read: if true;
-       allow write: if request.auth != null;
-    }
-    match /navetane_coupe_matches/{document=**} {
-       allow read: if true;
-       allow write: if request.auth != null;
-    }
-    match /navetane_preliminary_match/{document=**} {
-       allow read: if true;
-       allow write: if request.auth != null;
-    }
-    match /sponsors/{document=**} {
-       allow read: if true;
-       allow write: if request.auth != null;
-    }
-    match /finals_admin_data/{document=**} {
-       allow read: if true;
-       allow write: if request.auth != null;
-    }
-    
-    // PUBLIC READ FOR PUBLISHED VIEWS
-    match /navetane_public_views/{document=**} {
-      allow read: if true;
-      allow write: if request.auth != null; // Only backend can write
-    }
     match /sponsors_public_view/{document=**} {
-      allow read: if true;
-      allow write: if request.auth != null; // Only backend can write
+        allow read: if true;
+        allow write: if request.auth != null;
     }
-    match /navetane_stats/{document=**} {
+    match /navetane_public_views/{document=**} {
+        allow read: if true;
+        allow write: if request.auth != null;
+    }
+     match /navetane_stats/{document=**} {
         allow read: if true;
         allow write: if request.auth != null;
     }
@@ -63,8 +51,27 @@ service cloud.firestore {
         allow write: if request.auth != null;
     }
 
-    // COMMENTS: Allow anyone to create, admin to delete
-    match /comments/{comment} {
+
+    // Collections that only admins can write to, but are needed for publishing server-side
+    match /navetane_poules/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /navetane_coupe_matches/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /navetane_preliminary_match/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /finals_admin_data/{document=**} {
+        allow read: if true;
+        allow write: if request.auth != null;
+    }
+
+    // Comments can be created by anyone, but only admins can modify/delete (via console for now)
+    match /comments/{commentId} {
       allow read: if true;
       allow create: if true;
       allow update, delete: if request.auth != null;
