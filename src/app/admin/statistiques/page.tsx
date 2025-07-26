@@ -38,15 +38,18 @@ function PlayerRankingEditor({ title, description, ranks, setRanks, teams }: { t
 
     const handleChange = (index: number, field: keyof PlayerRank, value: string | number) => {
         const newRanks = [...ranks];
-        (newRanks[index] as any)[field] = value;
+        const rankToUpdate = { ...newRanks[index] };
+        (rankToUpdate as any)[field] = value;
         
         if (field === 'teamId') {
              const selectedTeam = teams.find(t => t.id === value);
              if(selectedTeam) {
-                (newRanks[index] as any)['teamName'] = selectedTeam.name;
+                rankToUpdate.teamName = selectedTeam.name;
+                rankToUpdate.teamLogoUrl = selectedTeam.logoUrl;
              }
         }
         
+        newRanks[index] = rankToUpdate;
         setRanks(newRanks);
     };
 
@@ -102,7 +105,9 @@ function MatchEditor({ title, matches, setMatches, isUpcoming, teams }: { title:
 
     const handleChange = (index: number, field: keyof Match, value: string | number) => {
         const newMatches = [...matches];
-        (newMatches[index] as any)[field] = value;
+        const matchToUpdate = { ...newMatches[index] };
+        (matchToUpdate as any)[field] = value;
+        newMatches[index] = matchToUpdate;
         setMatches(newMatches);
     };
 

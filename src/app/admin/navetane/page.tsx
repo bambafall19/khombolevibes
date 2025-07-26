@@ -194,23 +194,23 @@ export default function ManageNavetanePage() {
   // --- Handlers for Teams ---
   const handleTeamSubmit = async (values: TeamFormData) => {
     if (!currentPouleForTeam) return;
-  
+
     const selectedTeamData = teams.find(t => t.id === values.teamId);
     if (!selectedTeamData) {
         toast({ variant: 'destructive', title: 'Erreur', description: "L'équipe sélectionnée est introuvable." });
         return;
     }
-  
-    const existingTeams = currentPouleForTeam.teams || [];
-    let updatedTeams: NavetaneTeam[];
-  
+
     const teamToSave: NavetaneTeam = {
       ...values, 
       id: selectedTeamData.id,
       team: selectedTeamData.name,
       logoUrl: selectedTeamData.logoUrl,
     };
-  
+
+    let updatedTeams: NavetaneTeam[];
+    const existingTeams = currentPouleForTeam.teams || [];
+
     if (selectedTeam) { // Editing existing team
       updatedTeams = existingTeams.map(t => 
         t.id === selectedTeam.id ? teamToSave : t
@@ -271,36 +271,42 @@ export default function ManageNavetanePage() {
     });
   };
 
-  const teamFormFields = ({ control, register, formState: { errors } }: ReturnType<typeof useForm<TeamFormData>>) => (
-    <div className="space-y-2">
-      <div className="grid gap-2">
-        <Label htmlFor="teamId">Équipe</Label>
-        <Controller
-          control={control}
-          name="teamId"
-          render={({ field }) => (
-            <Select onValueChange={field.onChange} value={field.value}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner une équipe" />
-              </SelectTrigger>
-              <SelectContent>
-                {teams.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          )}
-        />
-        {errors.teamId && <p className="text-destructive text-sm">{errors.teamId.message}</p>}
-      </div>
-      <div className="grid grid-cols-3 gap-2">
-        <div><Label>Pts</Label><Input type="number" {...register('pts')} /></div>
-        <div><Label>J</Label><Input type="number" {...register('j')} /></div>
-        <div><Label>G</Label><Input type="number" {...register('g')} /></div>
-        <div><Label>N</Label><Input type="number" {...register('n')} /></div>
-        <div><Label>P</Label><Input type="number" {...register('p')} /></div>
-        <div><Label>DB</Label><Input {...register('db')} /></div>
-      </div>
-    </div>
-  );
+  const teamFormFields = ({ control, register, formState: { errors }, watch }: ReturnType<typeof useForm<TeamFormData>>) => {
+      const selectedTeamId = watch('teamId');
+      const isTeamAlreadyInPoule = (currentPouleForTeam?.teams || []).some(t => t.id === selectedTeamId) && selectedTeam?.id !== selectedTeamId;
+      
+      return (
+        <div className="space-y-2">
+          <div className="grid gap-2">
+            <Label htmlFor="teamId">Équipe</Label>
+            <Controller
+              control={control}
+              name="teamId"
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value} disabled={!!selectedTeam}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner une équipe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teams.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.teamId && <p className="text-destructive text-sm">{errors.teamId.message}</p>}
+            {isTeamAlreadyInPoule && <p className="text-destructive text-sm">Cette équipe est déjà dans la poule.</p>}
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <div><Label>Pts</Label><Input type="number" {...register('pts')} /></div>
+            <div><Label>J</Label><Input type="number" {...register('j')} /></div>
+            <div><Label>G</Label><Input type="number" {...register('g')} /></div>
+            <div><Label>N</Label><Input type="number" {...register('n')} /></div>
+            <div><Label>P</Label><Input type="number" {...register('p')} /></div>
+            <div><Label>DB</Label><Input {...register('db')} /></div>
+          </div>
+        </div>
+      );
+  };
 
   const teamSelect = (field: any, placeholder: string) => (
     <Select onValueChange={field.onChange} value={field.value || ''}>
