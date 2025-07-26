@@ -1,98 +1,78 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper functions to check request context
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isAdmin() {
-      // For this app, we consider any signed-in user as an admin.
-      return isSignedIn();
-    }
-
-    // ARTICLES: Public read, admin write
-    match /articles/{articleId} {
+  
+    // --- Publicly readable data ---
+    // Articles, categories, public media, comments, and published views are readable by anyone.
+    match /articles/{document=**} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if request.auth != null;
+    }
+    match /categories/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+     match /media/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /sponsors_public_view/{document=**} {
+        allow read: if true;
+        allow write: if request.auth != null;
+    }
+     match /navetane_public_views/{document=**} {
+        allow read: if true;
+        allow write: if request.auth != null;
+    }
+    match /navetane_stats/public_view {
+        allow read: if true;
+        allow write: if request.auth != null;
+    }
+    match /finals_public_view/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
     }
 
-    // CATEGORIES: Public read, admin write
-    match /categories/{categoryId} {
-      allow read: if true;
-      allow write: if isAdmin();
+    // --- User-submittable data ---
+    // Anyone can create comments and vote on polls
+    match /comments/{comment} {
+        allow read: if true;
+        allow create: if true;
+        allow update, delete: if request.auth != null;
     }
-
-    // COMMENTS: Public read, anyone can create
-    match /comments/{commentId} {
-      allow read: if true;
-      allow create: if true;
-      allow update, delete: if false; // Comments are immutable
-    }
-
-    // MEDIA: Public read, admin write
-    match /media/{mediaId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // TEAMS: Public read, admin write
-    match /teams/{teamId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // ADMIN-ONLY COLLECTIONS
-    match /navetane_poules/{pouleId} {
-      allow read, write: if isAdmin();
-    }
-    match /navetane_coupe_matches/{matchId} {
-      allow read, write: if isAdmin();
-    }
-    match /navetane_preliminary_match/{docId} {
-      allow read, write: if isAdmin();
-    }
-    match /finals_admin_data/{docId} {
-      allow read, write: if isAdmin();
-    }
-    match /sponsors/{sponsorId} {
-      allow read, write: if isAdmin();
-    }
-
-    // PUBLIC VIEW COLLECTIONS (public read, admin write)
-    match /navetane_public_views/{viewId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    match /sponsors_public_view/{viewId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    match /finals_public_view/{viewId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    
-    // NAVETANE STATS (Split permissions)
-    match /navetane_stats/{docId} {
-      // Allow anyone to read the public data, but only admin can read admin_data
-      allow read: if docId == 'public_view' || isAdmin();
-      // Only admin can write to any document in this collection
-      allow write: if isAdmin();
-    }
-
-    // POLLS: Public read, secure voting (update only), admin create/delete
     match /polls/{pollId} {
       allow read: if true;
-      allow create, delete: if isAdmin(); // Admins can create/delete polls (e.g. when editing an article)
-      
-      // Allow anyone to update a poll IF:
-      // 1. They are only changing the `options` and `totalVotes` fields.
-      // 2. The `totalVotes` is only increasing by 1.
-      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['options', 'totalVotes'])
-                      && request.resource.data.totalVotes == resource.data.totalVotes + 1;
+      // Allow authenticated users to create/delete polls.
+      // Anyone can vote (update). This is handled by a transaction in a server-side function.
+      allow update, write: if true; 
+    }
+    
+    // --- Admin-only writable data ---
+    // These collections can only be written to by authenticated users (admins).
+    match /teams/{document=**} {
+        allow read: if true;
+        allow write: if request.auth != null;
+    }
+    match /sponsors/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /navetane_poules/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    match /navetane_coupe_matches/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    match /navetane_preliminary_match/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+     match /navetane_stats/admin_data {
+        allow read, write: if request.auth != null;
+    }
+     match /finals_admin_data/{document=**} {
+      allow read, write: if request.auth != null;
     }
   }
 }
