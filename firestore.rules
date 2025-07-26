@@ -3,45 +3,52 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
   
-    // Règle générale : la plupart des collections sont en lecture seule pour le public,
-    // mais entièrement modifiables par un administrateur authentifié.
-    
-    function isAdmin() {
-      return request.auth != null;
+    // Règle générale : la lecture est publique, l'écriture est réservée aux admins.
+    // Appliquée à la plupart des collections.
+    function isPublicReadAdminWrite() {
+      return {
+        allow read: if true,
+        allow write: if request.auth != null
+      }
     }
 
-    // Collections principales
-    match /articles/{docId} { allow read: if true; allow write: if isAdmin(); }
-    match /categories/{docId} { allow read: if true; allow write: if isAdmin(); }
-    match /media/{docId} { allow read: if true; allow write: if isAdmin(); }
-    match /teams/{docId} { allow read: if true; allow write: if isAdmin(); }
-    match /sponsors/{docId} { allow read: if true; allow write: if isAdmin(); }
+    // Collections de base
+    match /articles/{doc=**} { rules isPublicReadAdminWrite(); }
+    match /categories/{doc=**} { rules isPublicReadAdminWrite(); }
+    match /media/{doc=**} { rules isPublicReadAdminWrite(); }
+    match /teams/{doc=**} { rules isPublicReadAdminWrite(); }
+    match /sponsors/{doc=**} { rules isPublicReadAdminWrite(); }
 
     // Collections Navétane
-    match /navetane_poules/{docId} { allow read: if true; allow write: if isAdmin(); }
-    match /navetane_coupe_matches/{docId} { allow read: if true; allow write: if isAdmin(); }
-    match /navetane_preliminary_match/{docId} { allow read: if true; allow write: if isAdmin(); }
-    match /navetane_stats/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /navetane_poules/{doc=**} { rules isPublicReadAdminWrite(); }
+    match /navetane_coupe_matches/{doc=**} { rules isPublicReadAdminWrite(); }
+    match /navetane_preliminary_match/{doc=**} { rules isPublicReadAdminWrite(); }
     
-    // Collections "public_view" gérées par l'admin
-    match /navetane_public_views/{docId} { allow read: if true; allow write: if isAdmin(); }
-    match /sponsors_public_view/{docId} { allow read: if true; allow write: if isAdmin(); }
+    // Collections de statistiques et de phases finales
+    match /navetane_stats/{doc=**} { rules isPublicReadAdminWrite(); }
+    match /finals_admin_data/{doc=**} { rules isPublicReadAdminWrite(); }
     
-    // Collections des phases finales
-    match /finals_admin_data/{docId} { allow read: if true; allow write: if isAdmin(); }
-    match /finals_public_view/{docId} { allow read: if true; allow write: if isAdmin(); }
+    // Collections des "vues publiques" générées par l'admin
+    match /sponsors_public_view/{doc=**} { rules isPublicReadAdminWrite(); }
+    match /navetane_public_views/{doc=**} { rules isPublicReadAdminWrite(); }
+    match /finals_public_view/{doc=**} { rules isPublicReadAdminWrite(); }
 
-    // Collections avec des permissions d'écriture publiques spécifiques
+    // --- Collections avec règles spéciales ---
+
+    // La collection des sondages (polls)
     match /polls/{pollId} {
-      // Tout le monde peut lire les sondages et y voter (write).
-      allow read, write: if true;
+      // La lecture est publique.
+      allow read: if true;
+      // L'écriture est autorisée pour tout le monde pour permettre le vote.
+      allow write: if true;
     }
 
+    // La collection des commentaires
     match /comments/{commentId} {
-      // Tout le monde peut lire et créer des commentaires.
+      // Tout le monde peut lire les commentaires et en créer de nouveaux.
       allow read, create: if true;
-      // Seul un admin peut modifier ou supprimer un commentaire (modération).
-      allow update, delete: if isAdmin();
+      // Seuls les admins peuvent modifier ou supprimer les commentaires.
+      allow update, delete: if request.auth != null;
     }
   }
 }
