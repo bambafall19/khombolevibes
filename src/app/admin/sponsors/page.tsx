@@ -15,7 +15,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { getSponsors, addSponsor, deleteSponsor, publishSponsors } from '@/lib/data';
+import { getSponsors } from '@/lib/data';
+import { addSponsor, deleteSponsor, publishSponsors } from '@/lib/actions';
 import type { Sponsor } from '@/types';
 
 const sponsorSchema = z.object({

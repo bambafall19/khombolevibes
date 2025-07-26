@@ -17,7 +17,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { getPolls, addPoll, updatePoll, deletePoll, getArticles } from '@/lib/data';
+import { getPolls, getArticles } from '@/lib/data';
+import { addPoll, updatePoll, deletePoll } from '@/lib/actions';
 import type { Poll, Article, PollOption } from '@/types';
 
 // Schema for validation

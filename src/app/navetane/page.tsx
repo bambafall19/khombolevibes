@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description: 'Suivez les classements du championnat et les résultats de la Coupe du Maire de la saison Navétane à Khombole.',
 };
 
-export const revalidate = 0; // Revalidate on every request
+export const revalidate = 60; // Revalidate every 60 seconds
 
 const StandingTable = ({poule}: {poule: NavetanePoule}) => {
     // Qualification logic: 3 for Poule A & B, 2 for Poule C

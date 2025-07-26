@@ -2,7 +2,8 @@
 'use client';
 
 import { useEffect, useState, type ReactNode, useMemo } from 'react';
-import { getArticles, getCategories, addArticle, updateArticle, deleteArticle } from '@/lib/data';
+import { getArticles, getCategories } from '@/lib/data';
+import { addArticle, updateArticle, deleteArticle } from '@/lib/actions';
 import type { Article, Category } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -223,7 +224,6 @@ export default function ManageArticlesPage() {
     try {
       setLoading(true);
       const [fetchedArticles, fetchedCategories] = await Promise.all([getArticles(), getCategories()]);
-      // Sort articles by date client-side to ensure consistent ordering
       const sortedArticles = fetchedArticles.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
       setArticles(sortedArticles);
       setCategories(fetchedCategories);

@@ -8,8 +8,7 @@ export const metadata: Metadata = {
   description: 'Découvrez les classements, les meilleurs buteurs, et les résultats des matchs de la saison Navétane à Khombole.',
 };
 
-// Revalidation removed to support static export
-// export const revalidate = 60; 
+export const revalidate = 60; // Revalidate every 60 seconds
 
 export default async function NavetanePalmaresPage() {
     // Fetch data on the server, this is secure

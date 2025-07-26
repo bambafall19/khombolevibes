@@ -15,7 +15,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { getAdminMedia, addMedia, updateMedia, deleteMedia } from '@/lib/data';
+import { getAdminMedia } from '@/lib/data';
+import { addMedia, updateMedia, deleteMedia } from '@/lib/actions';
 import type { Media } from '@/types';
 
 const mediaSchema = z.object({

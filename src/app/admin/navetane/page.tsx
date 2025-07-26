@@ -7,7 +7,8 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Loader2, PlusCircle, Pencil, Trash2, Forward, UploadCloud } from 'lucide-react';
-import { getAdminNavetanePoules, getAdminNavetaneCoupeMatches, addNavetanePoule, updateNavetanePoule, deleteNavetanePoule, addNavetaneCoupeMatch, updateNavetaneCoupeMatch, deleteNavetaneCoupeMatch, getTeams, getAdminPreliminaryMatch, updatePreliminaryMatch, publishNavetanePageData } from '@/lib/data';
+import { getAdminNavetanePoules, getAdminNavetaneCoupeMatches, getTeams, getAdminPreliminaryMatch } from '@/lib/data';
+import { addNavetanePoule, updateNavetanePoule, deleteNavetanePoule, addNavetaneCoupeMatch, updateNavetaneCoupeMatch, deleteNavetaneCoupeMatch, updatePreliminaryMatch, publishNavetanePageData } from '@/lib/actions';
 import type { NavetanePoule, NavetaneCoupeMatch, NavetaneTeam, Team, NavetanePreliminaryMatch } from '@/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
@@ -203,7 +204,6 @@ export default function ManageNavetanePage() {
     const existingTeams = currentPouleForTeam.teams || [];
     let updatedTeams: NavetaneTeam[];
   
-    // This is the complete team object we want to save
     const teamToSave: NavetaneTeam = {
       ...values, 
       id: selectedTeamData.id,
@@ -372,7 +372,6 @@ export default function ManageNavetanePage() {
                     <div className="flex justify-between items-center mb-2">
                       <h3 className="font-bold text-lg">{poule.name}</h3>
                       <div>
-                        {/* Edit Poule */}
                         <FormDialog
                           isOpen={pouleDialogOpen && selectedPoule?.id === poule.id}
                           onOpenChange={setPouleDialogOpen}
@@ -391,7 +390,6 @@ export default function ManageNavetanePage() {
                         >
                            <Button variant="ghost" size="icon" onClick={() => { setSelectedPoule(poule); setPouleDialogOpen(true); }}><Pencil className="h-4 w-4" /></Button>
                         </FormDialog>
-                        {/* Delete Poule */}
                         <AlertDialog>
                           <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-destructive"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
                           <AlertDialogContent>
@@ -428,7 +426,6 @@ export default function ManageNavetanePage() {
                             <TableCell className="text-center">{team.p}</TableCell>
                             <TableCell className="text-center">{team.db}</TableCell>
                             <TableCell className="text-right">
-                              {/* Edit Team */}
                                <FormDialog
                                   isOpen={teamDialogOpen && selectedTeam?.id === team.id && currentPouleForTeam?.id === poule.id}
                                   onOpenChange={setTeamDialogOpen}
@@ -441,7 +438,6 @@ export default function ManageNavetanePage() {
                               >
                                   <Button variant="ghost" size="icon" onClick={() => { setCurrentPouleForTeam(poule); setSelectedTeam(team); setTeamDialogOpen(true); }}><Pencil className="h-4 w-4" /></Button>
                               </FormDialog>
-                               {/* Delete Team */}
                               <AlertDialog>
                                 <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-destructive"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
                                 <AlertDialogContent>
@@ -454,7 +450,6 @@ export default function ManageNavetanePage() {
                         ))}
                       </TableBody>
                     </Table>
-                    {/* Add Team */}
                      <FormDialog
                           isOpen={teamDialogOpen && !selectedTeam && currentPouleForTeam?.id === poule.id}
                           onOpenChange={setTeamDialogOpen}
@@ -481,7 +476,6 @@ export default function ManageNavetanePage() {
                 <CardDescription>Gérez les affiches de la coupe, y compris le match préliminaire.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                {/* Preliminary Match Section */}
                 <div>
                     <div className='flex justify-between items-center'>
                         <h4 className="font-semibold text-lg">Match Préliminaire</h4>
@@ -529,7 +523,6 @@ export default function ManageNavetanePage() {
 
                 <Separator />
 
-                {/* Main Draw Section */}
                 <div>
                     <div className="flex justify-between items-center mb-2">
                         <h4 className="font-semibold text-lg">Tour Principal</h4>
@@ -567,7 +560,6 @@ export default function ManageNavetanePage() {
                            <div key={match.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border">
                             <p className="font-medium flex items-center">{match.teamA} <span className="mx-2 text-primary font-bold">vs</span> {match.teamB}</p>
                              <div>
-                                {/* Edit Coupe Match */}
                                 <FormDialog isOpen={coupeDialogOpen && selectedCoupeMatch?.id === match.id} onOpenChange={setCoupeDialogOpen} schema={coupeMatchSchema} defaultValues={match} title="Modifier le match" description="Changez les équipes de l'affiche." onSubmit={handleCoupeMatchSubmit}
                                    formFields={({ control, formState: { errors } }) => (
                                       <div className="space-y-4">
@@ -586,7 +578,6 @@ export default function ManageNavetanePage() {
                                 >
                                     <Button variant="ghost" size="icon" onClick={() => { setSelectedCoupeMatch(match); setCoupeDialogOpen(true); }}><Pencil className="h-4 w-4" /></Button>
                                 </FormDialog>
-                                {/* Delete Coupe Match */}
                                  <AlertDialog>
                                   <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-destructive"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
                                   <AlertDialogContent>

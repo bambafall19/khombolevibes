@@ -2,7 +2,8 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { getCategories, addCategory, updateCategory, deleteCategory } from '@/lib/data';
+import { getCategories } from '@/lib/data';
+import { addCategory, updateCategory, deleteCategory } from '@/lib/actions';
 import type { Category } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

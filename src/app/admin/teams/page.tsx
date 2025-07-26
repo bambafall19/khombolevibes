@@ -2,7 +2,8 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { getTeams, addTeam, updateTeam, deleteTeam } from '@/lib/data';
+import { getTeams } from '@/lib/data';
+import { addTeam, updateTeam, deleteTeam } from '@/lib/actions';
 import type { Team } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
