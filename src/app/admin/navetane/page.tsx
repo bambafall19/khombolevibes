@@ -203,9 +203,9 @@ export default function ManageNavetanePage() {
 
     const teamToSave: NavetaneTeam = {
       ...values, 
-      id: selectedTeamData.id,
-      team: selectedTeamData.name,
-      logoUrl: selectedTeamData.logoUrl,
+      id: selectedTeamData.id, // Use the actual team ID
+      team: selectedTeamData.name, // Use the canonical team name
+      logoUrl: selectedTeamData.logoUrl, // Use the canonical team logo
     };
 
     let updatedTeams: NavetaneTeam[];
