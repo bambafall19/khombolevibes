@@ -3,26 +3,34 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Règle de base pour la majorité des collections :
-    // La lecture est publique (pour que le site fonctionne)
+    // Fonction pour vérifier si l'utilisateur connecté est un administrateur.
+    // On vérifie dans la collection 'users' si l'utilisateur a le rôle 'admin'.
+    function isAdmin() {
+      // L'utilisateur doit être connecté (request.auth != null)
+      // et son document dans /users/{uid} doit avoir data.role == 'admin'.
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Règle de base pour la majorité des collections (sponsors, articles, etc.):
+    // La lecture est publique pour que les visiteurs puissent voir le contenu.
     // L'écriture (créer, modifier, supprimer) est réservée aux administrateurs.
     match /{document=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
     
     // EXCEPTION 1: La collection des commentaires
-    // Tout le monde doit pouvoir créer un commentaire.
+    // N'importe qui (même non authentifié) peut lire et poster un commentaire.
+    // Seuls les administrateurs peuvent modérer (modifier/supprimer).
     match /comments/{commentId} {
       allow read, create: if true;
-      allow update, delete: if request.auth != null;
+      allow update, delete: if isAdmin();
     }
     
-    // EXCEPTION 2: La collection des sondages
-    // Tout le monde doit pouvoir écrire pour voter.
+    // EXCEPTION 2: La collection des sondages (polls)
+    // N'importe qui peut lire et voter (écrire).
     match /polls/{pollId} {
-      allow read: if true;
-      allow write: if true;
+      allow read, write: if true;
     }
   }
 }
