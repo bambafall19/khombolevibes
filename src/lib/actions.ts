@@ -5,7 +5,7 @@ import { collection, getDocs, doc, getDoc, query, where, orderBy, addDoc, update
 import { revalidateTag } from 'next/cache';
 import { db } from './firebase';
 import { getCategories, getTeams, getSponsors, getAdminNavetanePoules, getAdminNavetaneCoupeMatches, getAdminPreliminaryMatch, getAdminFinalsData, generateExcerpt, getArticles, getNavetanePageData, getNavetaneStatsPageData, getPublicSponsors } from './data';
-import type { Article, Category, Media, NavetanePoule, NavetaneCoupeMatch, Team, NavetanePreliminaryMatch, Comment, NavetanePublicView, NavetaneStats, PlayerRank, Match, TeamData, Sponsor, SponsorPublicView, NavetaneStatsPublicView, CompetitionFinals, FinalsBracket, BracketMatch, Poll, PollOption } from '@/types';
+import type { Article, Category, Media, NavetanePoule, NavetaneCoupeMatch, Team, NavetanePreliminaryMatch, Comment, NavetanePublicView, NavetaneStats, PlayerRank, Match, TeamData, Sponsor, SponsorPublicView, NavetaneStatsPublicView, CompetitionFinals, FinalsBracket, BracketMatch, Poll, PollOption, NavetaneTeam } from '@/types';
 import { nanoid } from 'nanoid';
 
 let categoriesCache: Category[] | null = null;
@@ -437,17 +437,28 @@ export async function addNavetanePoule(poule: Omit<NavetanePoule, 'id' | 'teams'
 }
 
 export async function updateNavetanePoule(id: string, poule: Partial<Omit<NavetanePoule, 'id'>>) {
-    const dataToUpdate: Partial<Omit<NavetanePoule, 'id'>> = {};
+    const pouleRef = doc(db, 'navetane_poules', id);
+    const dataToUpdate: { name?: string; teams?: NavetaneTeam[] } = {};
+
     if (poule.name) {
         dataToUpdate.name = poule.name;
     }
     if (poule.teams) {
-        // Ensure we are not sending undefined fields to Firestore
-        dataToUpdate.teams = poule.teams.map(({ id: teamId, team, logoUrl, pts, j, g, n, p, db }) => ({
-             id: teamId, team, logoUrl: logoUrl || '', pts, j, g, n, p, db
+        // Ensure we are not sending undefined or extra fields to Firestore.
+        // This was the source of the permission error.
+        dataToUpdate.teams = poule.teams.map(({ id, team, logoUrl, pts, j, g, n, p, db }) => ({
+             id,
+             team,
+             logoUrl: logoUrl || '',
+             pts: pts || 0,
+             j: j || 0,
+             g: g || 0,
+             n: n || 0,
+             p: p || 0,
+             db: db || '0'
         }));
     }
-    return await updateDoc(doc(db, 'navetane_poules', id), dataToUpdate);
+    return await updateDoc(pouleRef, dataToUpdate);
 }
 
 export async function deleteNavetanePoule(id: string) {
