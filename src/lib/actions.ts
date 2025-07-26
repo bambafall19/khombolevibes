@@ -4,7 +4,7 @@
 import { collection, getDocs, doc, getDoc, query, where, orderBy, addDoc, updateDoc, deleteDoc, serverTimestamp, Timestamp, setDoc, writeBatch, runTransaction } from 'firebase/firestore';
 import { revalidateTag } from 'next/cache';
 import { db } from './firebase';
-import { getCategories, getTeams, getSponsors, getAdminNavetanePoules, getAdminNavetaneCoupeMatches, getAdminPreliminaryMatch, getAdminFinalsData, generateExcerpt } from './data';
+import { getCategories, getTeams, getSponsors, getAdminNavetanePoules, getAdminNavetaneCoupeMatches, getAdminPreliminaryMatch, getAdminFinalsData, generateExcerpt, getArticles, getNavetanePageData, getNavetaneStatsPageData, getPublicSponsors } from './data';
 import type { Article, Category, Media, NavetanePoule, NavetaneCoupeMatch, Team, NavetanePreliminaryMatch, Comment, NavetanePublicView, NavetaneStats, PlayerRank, Match, TeamData, Sponsor, SponsorPublicView, NavetaneStatsPublicView, CompetitionFinals, FinalsBracket, BracketMatch, Poll, PollOption } from '@/types';
 import { nanoid } from 'nanoid';
 
