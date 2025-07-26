@@ -2,25 +2,57 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-  
-    // Règle globale : la lecture est publique, l'écriture nécessite une authentification
-    // Ceci est la règle la plus simple et la plus sûre pour votre application.
-    match /{document=**} {
+
+    // Règle principale pour la plupart des collections :
+    // - Tout le monde peut lire les données (important pour que le site s'affiche).
+    // - Seuls les administrateurs authentifiés peuvent créer, modifier ou supprimer.
+    match /{path=**}/_/{document=**} {
+        allow read: if true;
+        allow write: if request.auth != null;
+    }
+    
+    // Collections avec des règles spécifiques
+    
+    // La collection des catégories.
+    match /categories/{categoryId} {
       allow read: if true;
       allow write: if request.auth != null;
     }
 
-    // Cas spéciaux pour les commentaires et les votes
-    // où même les non-admins doivent pouvoir écrire.
-    match /comments/{commentId} {
-      // Tout le monde peut lire et créer, seuls les admins peuvent modifier/supprimer.
-      allow read, create: if true;
-      allow update, delete: if request.auth != null;
+    // La collection des articles.
+    match /articles/{articleId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // La collection des sondages.
+    match /polls/{pollId} {
+      // Tout le monde peut lire ET écrire pour pouvoir voter.
+      allow read, write: if true;
     }
 
-    match /polls/{pollId} {
-        // Tout le monde peut lire et écrire (pour pouvoir voter)
-        allow read, write: if true;
+    // La collection des commentaires.
+    match /comments/{commentId} {
+      // Tout le monde peut lire et créer des commentaires.
+      allow read, create: if true;
+      // Seuls les admins peuvent modifier ou supprimer les commentaires.
+      allow update, delete: if request.auth != null;
     }
+    
+    // Toutes les autres collections d'administration (équipes, poules, sponsors, etc.)
+    // suivent une règle simple : lecture publique, écriture réservée aux admins.
+    match /teams/{teamId} { allow read: if true; allow write: if request.auth != null; }
+    match /sponsors/{sponsorId} { allow read: if true; allow write: if request.auth != null; }
+    match /media/{mediaId} { allow read: if true; allow write: if request.auth != null; }
+    match /navetane_poules/{pouleId} { allow read: if true; allow write: if request.auth != null; }
+    match /navetane_coupe_matches/{matchId} { allow read: if true; allow write: if request.auth != null; }
+    match /navetane_preliminary_match/{docId} { allow read: if true; allow write: if request.auth != null; }
+    match /navetane_stats/{docId} { allow read: if true; allow write: if request.auth != null; }
+    match /finals_admin_data/{docId} { allow read: if true; allow write: if request.auth != null; }
+    
+    // Les "vues publiques" qui sont générées par l'admin.
+    match /sponsors_public_view/{docId} { allow read: if true; allow write: if request.auth != null; }
+    match /navetane_public_views/{docId} { allow read: if true; allow write: if request.auth != null; }
+    match /finals_public_view/{docId} { allow read: if true; allow write: if request.auth != null; }
   }
 }
