@@ -12,6 +12,7 @@ import ClientToaster from '@/components/ClientToaster';
 import BottomNavBar from '@/components/BottomNavBar';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Jost, Josefin_Sans } from 'next/font/google';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 
 
 const jost = Jost({
@@ -53,6 +54,7 @@ export default async function RootLayout({
     <html lang="fr" suppressHydrationWarning>
       <head />
       <body>
+         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
