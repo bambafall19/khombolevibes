@@ -132,7 +132,8 @@ export async function updateArticle(id: string, articleData: Partial<Omit<Articl
         updatedData.excerpt = generateExcerpt(articleData.content);
     }
     
-    if (articleData.imageUrl2 === '') {
+    // Explicitly handle empty optional image URL
+    if ('imageUrl2' in articleData && articleData.imageUrl2 === '') {
         updatedData.imageUrl2 = null;
     }
 
@@ -430,28 +431,25 @@ export async function addNavetanePoule(poule: Omit<NavetanePoule, 'id' | 'teams'
 export async function updateNavetanePoule(id: string, pouleData: Partial<Omit<NavetanePoule, 'id'>>) {
     const pouleRef = doc(db, 'navetane_poules', id);
 
-    // Create a clean object with only the fields that should be updated.
-    const dataToUpdate: { name?: string; teams?: NavetaneTeam[] } = {};
+    const dataToUpdate: { [key: string]: any } = {};
 
     if (pouleData.name) {
         dataToUpdate.name = pouleData.name;
     }
     
     if (pouleData.teams) {
-        // Ensure that we only pass serializable data to Firestore.
         dataToUpdate.teams = pouleData.teams.map(({ id, team, logoUrl, pts, j, g, n, p, db }) => ({
-             id,
-             team,
-             logoUrl: logoUrl || '',
-             pts: pts || 0,
-             j: j || 0,
-             g: g || 0,
-             n: n || 0,
-             p: p || 0,
-             db: db || '0'
+             id, team, logoUrl: logoUrl || '',
+             pts: pts || 0, j: j || 0, g: g || 0,
+             n: n || 0, p: p || 0, db: db || '0'
         }));
     }
     
+    if (Object.keys(dataToUpdate).length === 0) {
+        console.warn("Update called with no data to update for poule:", id);
+        return;
+    }
+
     return await updateDoc(pouleRef, dataToUpdate);
 }
 
@@ -471,8 +469,8 @@ export async function deleteNavetaneCoupeMatch(id: string) {
     return await deleteDoc(doc(db, 'navetane_coupe_matches', id));
 }
 
-export async function updatePreliminaryMatch(data: Omit<NavetanePreliminaryMatch, 'teamAData' | 'teamBData' | 'winnerPlaysAgainstData'>) {
-    return await setDoc(doc(db, 'navetane_preliminary_match', 'main_prelim'), { ...data }, { merge: true });
+export async function updatePreliminaryMatch(data: Partial<Omit<NavetanePreliminaryMatch, 'teamAData' | 'teamBData' | 'winnerPlaysAgainstData'>>) {
+    return await setDoc(doc(db, 'navetane_preliminary_match', 'main_prelim'), data, { merge: true });
 }
 
 export async function updateAdminFinalsData(data: CompetitionFinals): Promise<void> {
