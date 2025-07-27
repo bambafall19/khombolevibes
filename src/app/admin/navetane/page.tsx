@@ -63,7 +63,6 @@ function FormDialog<T extends z.ZodType<any, any>>({
   title,
   description,
   onSubmit,
-  children,
   formFields,
 }: {
   isOpen: boolean;
@@ -73,7 +72,6 @@ function FormDialog<T extends z.ZodType<any, any>>({
   title: string;
   description: string;
   onSubmit: (values: z.infer<T>) => Promise<void>;
-  children: ReactNode;
   formFields: (form: ReturnType<typeof useForm<z.infer<T>>>) => ReactNode;
 }) {
   const { toast } = useToast();
@@ -104,7 +102,6 @@ function FormDialog<T extends z.ZodType<any, any>>({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -483,9 +480,7 @@ export default function ManageNavetanePage() {
                 {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
             </div>
         )}
-      >
-        <></>
-      </FormDialog>
+      />
       
       <FormDialog
           isOpen={dialogState.type === 'team.edit'}
@@ -504,9 +499,7 @@ export default function ManageNavetanePage() {
           description={dialogState.data?.team ? `Modifiez les détails de l'équipe dans ${dialogState.data?.poule?.name}.` : "Remplissez les informations de la nouvelle équipe."}
           onSubmit={handleTeamSubmit}
           formFields={teamFormFields}
-      >
-        <></>
-      </FormDialog>
+      />
 
       <FormDialog
           isOpen={dialogState.type === 'preliminary.edit'}
@@ -535,9 +528,7 @@ export default function ManageNavetanePage() {
                   </div>
               </div>
           )}
-      >
-          <></>
-      </FormDialog>
+      />
 
       <FormDialog
           isOpen={dialogState.type === 'coupe.edit'}
@@ -561,9 +552,7 @@ export default function ManageNavetanePage() {
               </div>
             </div>
           )}
-        >
-          <></>
-        </FormDialog>
+        />
 
     </div>
   );
