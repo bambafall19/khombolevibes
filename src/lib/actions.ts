@@ -430,15 +430,13 @@ export async function addNavetanePoule(poule: Omit<NavetanePoule, 'id' | 'teams'
 
 export async function updateNavetanePoule(id: string, pouleData: Partial<Omit<NavetanePoule, 'id'>>) {
     const pouleRef = doc(db, 'navetane_poules', id);
-    const dataToUpdate: { [key: string]: any } = {};
-
-    if ('name' in pouleData && pouleData.name !== undefined) {
-        dataToUpdate.name = pouleData.name;
-    }
     
-    if ('teams' in pouleData) {
+    // Create a deep copy to avoid modifying the original object
+    const dataToUpdate: { [key: string]: any } = JSON.parse(JSON.stringify(pouleData));
+
+    if (dataToUpdate.teams) {
         // Sanitize the teams array to ensure all fields are valid for Firestore
-        dataToUpdate.teams = (pouleData.teams || []).map(team => ({
+        dataToUpdate.teams = dataToUpdate.teams.map((team: NavetaneTeam) => ({
              id: team.id || '', 
              team: team.team || '', 
              logoUrl: team.logoUrl || '',
@@ -451,10 +449,9 @@ export async function updateNavetanePoule(id: string, pouleData: Partial<Omit<Na
         }));
     }
     
-    if (Object.keys(dataToUpdate).length > 0) {
-        return await updateDoc(pouleRef, dataToUpdate);
-    }
+    return await updateDoc(pouleRef, dataToUpdate);
 }
+
 
 export async function deleteNavetanePoule(id: string) {
     return await deleteDoc(doc(db, 'navetane_poules', id));

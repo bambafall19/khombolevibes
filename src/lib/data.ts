@@ -447,7 +447,8 @@ export async function getNavetaneStatsPageData(): Promise<NavetaneStatsPublicVie
 
         let preliminaryMatch: NavetanePreliminaryMatch | null = null;
         if (navetaneViewDocSnap.exists()) {
-            preliminaryMatch = navetaneViewDocSnap.data()?.preliminaryMatch || null;
+            const data = navetaneViewDocSnap.data();
+            preliminaryMatch = data ? (data.preliminaryMatch || null) : null;
         }
         
         return {

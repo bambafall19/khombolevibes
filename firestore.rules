@@ -2,30 +2,24 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Règle par défaut : Tout le monde peut lire. Seuls les admins peuvent écrire.
-    // Cela s'applique à toutes les collections (articles, categories, teams, etc.)
-    // sauf si une règle plus spécifique est définie ci-dessous.
+  
+    // Default rule: Allow public read access, but restrict write access to authenticated users.
+    // This rule applies to ALL collections unless a more specific rule overrides it.
     match /{document=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
-
-    // --- EXCEPTIONS AUX RÈGLES PAR DÉFAUT ---
-
-    // La collection des commentaires
-    // Tout le monde peut lire et créer des commentaires.
-    // Seul un admin peut modifier ou supprimer un commentaire.
+    
+    // Override for 'comments' to allow anyone to create them.
     match /comments/{commentId} {
       allow read, create: if true;
-      allow update, delete: if request.auth != null;
+      allow update, delete: if request.auth != null; // Only admin can edit/delete.
     }
 
-    // La collection des sondages (polls)
-    // Tout le monde a besoin d'un accès en écriture pour pouvoir voter.
-    // La logique de l'application doit empêcher les abus (ex: voter une seule fois).
+    // Override for 'polls' to allow anyone to vote (which is a write operation).
     match /polls/{pollId} {
-       allow read, write: if true;
+      allow read, write: if true;
     }
+
   }
 }
