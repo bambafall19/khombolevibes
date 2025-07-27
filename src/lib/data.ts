@@ -1,7 +1,7 @@
 // src/lib/data.ts
 import { collection, getDocs, doc, getDoc, query, where, orderBy, addDoc, updateDoc, deleteDoc, serverTimestamp, Timestamp, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Article, Category, Media, NavetanePoule, NavetaneCoupeMatch, Team, NavetanePreliminaryMatch, Comment, NavetanePublicView, NavetaneStats, PlayerRank, Match, TeamData, Sponsor, SponsorPublicView, NavetaneStatsPublicView, CompetitionFinals, FinalsBracket, BracketMatch, Poll } from '@/types';
+import type { Article, Category, Media, NavetanePoule, NavetaneCoupeMatch, Team, NavetanePreliminaryMatch, Comment, NavetanePublicView, NavetaneStats, PlayerRank, Match, TeamData, Sponsor, SponsorPublicView, NavetaneStatsPublicView, CompetitionFinals, FinalsBracket, BracketMatch, Poll, MediaPublicView } from '@/types';
 
 let categoriesCache: Category[] | null = null;
 let teamsCache: Team[] | null = null;
@@ -9,6 +9,10 @@ let mediaCache: Media[] | null = null;
 
 const defaultSponsorPublicView: SponsorPublicView = {
     sponsors: [],
+};
+
+const defaultMediaPublicView: MediaPublicView = {
+    media: [],
 };
 
 const defaultStats: NavetaneStats = {
@@ -193,6 +197,7 @@ export async function getPolls(): Promise<Poll[]> {
 
 // --- Media Management ---
 const mediaCollection = collection(db, 'media');
+const mediaPublicViewDoc = doc(db, 'media_public_view', 'live');
 
 export async function getAdminMedia(forceRefresh: boolean = false): Promise<Media[]> {
     if (mediaCache && !forceRefresh) {
@@ -225,21 +230,12 @@ export async function getAdminMedia(forceRefresh: boolean = false): Promise<Medi
 
 export async function getPublicMedia(): Promise<Media[]> {
      try {
-        const snapshot = await getDocs(query(mediaCollection, orderBy('createdAt', 'desc')));
-        if (snapshot.empty) {
-            return [];
+        const docSnap = await getDoc(mediaPublicViewDoc);
+        if (docSnap.exists()) {
+            const data = docSnap.data() as MediaPublicView;
+            return data.media || [];
         }
-        return snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-                id: doc.id,
-                title: data.title || '',
-                thumbnailUrl: data.thumbnailUrl || '',
-                thumbnailHint: data.thumbnailHint || '',
-                imageUrls: data.imageUrls || [],
-                createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString()
-            } as Media
-        });
+        return [];
     } catch (error) {
         console.error("Error fetching public media from Firestore: ", error);
         return [];

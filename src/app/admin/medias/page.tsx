@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Pencil, PlusCircle, Trash2, Loader2, ArrowLeft, ImageIcon } from 'lucide-react';
+import { Pencil, PlusCircle, Trash2, Loader2, ArrowLeft, ImageIcon, UploadCloud } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +16,7 @@ import * as z from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { getAdminMedia } from '@/lib/data';
-import { addMedia, updateMedia, deleteMedia } from '@/lib/actions';
+import { addMedia, updateMedia, deleteMedia, publishMedia } from '@/lib/actions';
 import type { Media } from '@/types';
 
 const mediaSchema = z.object({
@@ -133,6 +133,7 @@ export default function ManageMediaPage() {
   const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
+  const [isPublishing, setIsPublishing] = useState(false);
   const { toast } = useToast();
 
   const fetchData = async () => {
@@ -173,6 +174,20 @@ export default function ManageMediaPage() {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de supprimer le média.' });
     }
   };
+  
+  const handlePublish = async () => {
+    setIsPublishing(true);
+    try {
+      await publishMedia();
+      toast({ title: "Publication réussie", description: "La galerie a été mise à jour sur le site public." });
+    } catch (error) {
+      console.error("Failed to publish media:", error);
+      toast({ variant: "destructive", title: "Erreur de publication", description: "Impossible de publier les données." });
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -182,22 +197,28 @@ export default function ManageMediaPage() {
           Retour au tableau de bord
         </Link>
       </Button>
-      <header className="flex justify-between items-center mb-8">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h1 className="font-headline text-4xl font-bold text-primary">Gérer les Médias</h1>
           <p className="mt-2 text-muted-foreground">Ajoutez ou supprimez des photos de votre galerie.</p>
         </div>
-        <MediaForm
-          onSave={fetchData}
-          onOpenChange={setIsFormOpen}
-          isOpen={isFormOpen && !selectedMedia}
-          media={null}
-        >
-          <Button onClick={handleAddClick}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Ajouter un média
-          </Button>
-        </MediaForm>
+        <div className="flex gap-2">
+            <MediaForm
+            onSave={fetchData}
+            onOpenChange={setIsFormOpen}
+            isOpen={isFormOpen && !selectedMedia}
+            media={null}
+            >
+            <Button>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Ajouter un média
+            </Button>
+            </MediaForm>
+             <Button onClick={handlePublish} disabled={isPublishing}>
+                {isPublishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
+                {isPublishing ? "Publication..." : "Publier"}
+            </Button>
+        </div>
       </header>
 
       {loading ? (

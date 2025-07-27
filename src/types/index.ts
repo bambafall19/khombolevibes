@@ -45,6 +45,11 @@ export type Media = {
   createdAt: string; // ISO string date
 };
 
+export type MediaPublicView = {
+    media: Media[];
+    lastPublished?: string;
+}
+
 export type NavetaneTeam = {
     id: string; 
     team: string;
