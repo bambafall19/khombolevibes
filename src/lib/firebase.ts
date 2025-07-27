@@ -1,10 +1,11 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth } from "firebase/auth";
-import { getFirestore, type Firestore } from "firebase/firestore";
-import { getStorage, type FirebaseStorage } from "firebase/storage";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -15,53 +16,10 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-interface FirebaseServices {
-    app: FirebaseApp | null;
-    auth: Auth | null;
-    db: Firestore | null;
-    storage: FirebaseStorage | null;
-}
-
-let services: FirebaseServices | null = null;
-
-// Function to initialize Firebase
-function initializeFirebase(): FirebaseServices {
-    if (services) {
-        return services;
-    }
-
-    // Check if all required environment variables are set
-    const requiredVars = [
-        'NEXT_PUBLIC_FIREBASE_API_KEY', 
-        'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-        'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
-        'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
-        'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-        'NEXT_PUBLIC_FIREBASE_APP_ID',
-    ];
-    const missingVars = requiredVars.filter(v => !process.env[v]);
-    
-    if (missingVars.length > 0) {
-        console.error(`Firebase initialization failed: Missing environment variables: ${missingVars.join(', ')}. Please check your .env file.`);
-        services = { app: null, auth: null, db: null, storage: null };
-        return services;
-    }
-    
-    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-    services = {
-        app,
-        auth: getAuth(app),
-        db: getFirestore(app),
-        storage: getStorage(app),
-    };
-    return services;
-}
-
-const { app, auth, db, storage } = initializeFirebase();
-
-// We check for null before exporting to ensure services are only exported if initialized.
-if (!app || !auth || !db || !storage) {
-    console.error("Firebase services could not be initialized. The app might not function correctly. Ensure all NEXT_PUBLIC_FIREBASE_ environment variables are set.");
-}
+// Initialize Firebase
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
 export { app, auth, db, storage };
