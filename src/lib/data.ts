@@ -1,7 +1,7 @@
 // src/lib/data.ts
-import { collection, getDocs, doc, getDoc, query, where, orderBy, addDoc, updateDoc, deleteDoc, serverTimestamp, Timestamp, setDoc, writeBatch } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, where, orderBy, Timestamp } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Article, Category, Media, NavetanePoule, NavetaneCoupeMatch, Team, NavetanePreliminaryMatch, Comment, NavetanePublicView, NavetaneStats, PlayerRank, Match, TeamData, Sponsor, SponsorPublicView, NavetaneStatsPublicView, CompetitionFinals, FinalsBracket, BracketMatch, Poll, MediaPublicView } from '@/types';
+import type { Article, Category, Media, NavetanePoule, NavetaneCoupeMatch, Team, NavetanePreliminaryMatch, Comment, NavetanePublicView, NavetaneStats, FinalsBracket, CompetitionFinals, Poll, Sponsor, SponsorPublicView, MediaPublicView, NavetaneStatsPublicView } from '@/types';
 
 let categoriesCache: Category[] | null = null;
 let teamsCache: Team[] | null = null;
@@ -53,7 +53,7 @@ export async function getCategories(): Promise<Category[]> {
     const categorySnapshot = await getDocs(q);
     
     if (categorySnapshot.empty) {
-        console.log("Firestore 'categories' collection is empty. Please add categories in the admin panel.");
+        console.warn("Firestore 'categories' collection is empty. Please add categories in the admin panel.");
         return [];
     }
     
@@ -61,7 +61,7 @@ export async function getCategories(): Promise<Category[]> {
     categoriesCache = categoryList;
     return categoryList;
   } catch (error) {
-    console.error("Error fetching categories from Firestore: ", error);
+    console.error("Error fetching categories from Firestore. This might be due to missing Firebase config or permissions.", error);
     return [];
   }
 }
@@ -119,7 +119,7 @@ export async function getArticles(categorySlug?: string): Promise<Article[]> {
 
     return articles;
   } catch (error) {
-    console.error("Error fetching articles from Firestore: ", error);
+    console.error("Error fetching articles from Firestore. This might be due to missing Firebase config or permissions.", error);
     if (error instanceof Error && error.message.includes("query requires an index")) {
         console.error("Firestore composite index missing. Please create it in the Firebase console.");
     }
@@ -156,33 +156,38 @@ export async function searchArticles(searchQuery: string): Promise<Article[]> {
 
     return articles;
   } catch (error) {
-    console.error("Error searching articles in Firestore: ", error);
+    console.error("Error searching articles in Firestore. This might be due to missing Firebase config or permissions.", error);
     return [];
   }
 }
 
 
 export async function getArticleBySlug(slug: string): Promise<Article | undefined> {
-  const articlesCollection = collection(db, 'articles');
-  const q = query(articlesCollection, where('slug', '==', slug));
-  const articleSnapshot = await getDocs(q);
+  try {
+    const articlesCollection = collection(db, 'articles');
+    const q = query(articlesCollection, where('slug', '==', slug));
+    const articleSnapshot = await getDocs(q);
 
-  if (articleSnapshot.empty) {
+    if (articleSnapshot.empty) {
+      return undefined;
+    }
+
+    const allCategories = await getCategories();
+    const doc = articleSnapshot.docs[0];
+    const data = doc.data();
+    
+    const articleCategory = allCategories.find(c => c.id === data.category?.id) || data.category;
+
+    return {
+      id: doc.id,
+      ...data,
+      category: articleCategory,
+      publishedAt: (data.publishedAt as Timestamp).toDate().toISOString(),
+    } as Article;
+  } catch (error) {
+    console.error(`Error fetching article by slug "${slug}". This might be due to missing Firebase config or permissions.`, error);
     return undefined;
   }
-
-  const allCategories = await getCategories();
-  const doc = articleSnapshot.docs[0];
-  const data = doc.data();
-  
-  const articleCategory = allCategories.find(c => c.id === data.category?.id) || data.category;
-
-  return {
-    id: doc.id,
-    ...data,
-    category: articleCategory,
-    publishedAt: (data.publishedAt as Timestamp).toDate().toISOString(),
-  } as Article;
 }
 
 
@@ -190,8 +195,13 @@ export async function getArticleBySlug(slug: string): Promise<Article | undefine
 const pollsCollection = collection(db, 'polls');
 
 export async function getPolls(): Promise<Poll[]> {
+  try {
     const snapshot = await getDocs(query(pollsCollection, orderBy('question')));
     return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Poll));
+  } catch (error) {
+    console.error("Error fetching polls from Firestore. This might be due to missing Firebase config or permissions.", error);
+    return [];
+  }
 }
 
 
@@ -223,7 +233,7 @@ export async function getAdminMedia(forceRefresh: boolean = false): Promise<Medi
         mediaCache = mediaList;
         return mediaList;
     } catch (error) {
-        console.error("Error fetching admin media from Firestore: ", error);
+        console.error("Error fetching admin media from Firestore. This might be due to missing Firebase config or permissions.", error);
         return [];
     }
 }
@@ -237,7 +247,7 @@ export async function getPublicMedia(): Promise<Media[]> {
         // Fallback for build time: read directly from admin collection
         return await getAdminMedia(true);
     } catch (error) {
-        console.error("Error fetching public media, falling back to admin data:", error);
+        console.warn("Could not fetch public media view, falling back to admin data. This is expected during build time.", error);
         try {
             return await getAdminMedia(true);
         } catch (adminError) {
@@ -256,7 +266,7 @@ export async function getAdminNavetanePoules(): Promise<NavetanePoule[]> {
         const snapshot = await getDocs(query(navetanePoulesCollection, orderBy('name')));
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as NavetanePoule));
     } catch(e) {
-        console.error("Error fetching navetane poules:", e);
+        console.error("Error fetching navetane poules. This might be due to missing Firebase config or permissions.", e);
         return [];
     }
 }
@@ -266,7 +276,7 @@ export async function getAdminNavetaneCoupeMatches(): Promise<NavetaneCoupeMatch
         const snapshot = await getDocs(query(navetaneCoupeCollection));
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as NavetaneCoupeMatch));
     } catch(e) {
-        console.error("Error fetching navetane coupe matches:", e);
+        console.error("Error fetching navetane coupe matches. This might be due to missing Firebase config or permissions.", e);
         return [];
     }
 }
@@ -284,7 +294,7 @@ export async function getAdminPreliminaryMatch(): Promise<NavetanePreliminaryMat
         }
         return null;
     } catch (e) {
-        console.error("Error fetching preliminary match:", e);
+        console.error("Error fetching preliminary match. This might be due to missing Firebase config or permissions.", e);
         return null;
     }
 }
@@ -302,7 +312,7 @@ export async function getTeams(): Promise<Team[]> {
         teamsCache = teams;
         return teams;
     } catch (e) {
-        console.error("Error fetching teams:", e);
+        console.error("Error fetching teams. This might be due to missing Firebase config or permissions.", e);
         return [];
     }
 }
@@ -310,57 +320,55 @@ export async function getTeams(): Promise<Team[]> {
 
 // --- Comments Management ---
 export async function getCommentsForArticle(articleId: string): Promise<Comment[]> {
-    const commentsCollection = collection(db, 'comments');
-    const q = query(
-      commentsCollection,
-      where('articleId', '==', articleId),
-    );
-
     try {
-        const snapshot = await getDocs(q);
-        
-        if (snapshot.empty) {
-          return [];
-        }
-        
-        const comments = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            createdAt: (data.createdAt as Timestamp).toDate().toISOString(),
-          } as Comment;
-        });
+      const commentsCollection = collection(db, 'comments');
+      const q = query(
+        commentsCollection,
+        where('articleId', '==', articleId),
+      );
+      const snapshot = await getDocs(q);
+      
+      if (snapshot.empty) {
+        return [];
+      }
+      
+      const comments = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: (data.createdAt as Timestamp).toDate().toISOString(),
+        } as Comment;
+      });
 
-        comments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        
-        return comments;
+      comments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      return comments;
 
     } catch (error) {
-        console.error("Error fetching comments:", error);
+        console.error(`Error fetching comments for article ${articleId}. This might be due to missing Firebase config or permissions.`, error);
         return [];
     }
 }
 
 export async function getPollForArticle(articleId: string): Promise<Poll | null> {
-    const pollsCollection = collection(db, 'polls');
-    const q = query(pollsCollection, where('articleId', '==', articleId));
-    
     try {
-        const snapshot = await getDocs(q);
+      const pollsCollection = collection(db, 'polls');
+      const q = query(pollsCollection, where('articleId', '==', articleId));
+      const snapshot = await getDocs(q);
 
-        if (snapshot.empty) {
-            return null;
-        }
-        const pollDoc = snapshot.docs[0];
-        return { id: pollDoc.id, ...pollDoc.data() } as Poll;
+      if (snapshot.empty) {
+          return null;
+      }
+      const pollDoc = snapshot.docs[0];
+      return { id: pollDoc.id, ...pollDoc.data() } as Poll;
 
     } catch (error) {
-        console.error("Error fetching poll for article:", error);
+        console.error(`Error fetching poll for article ${articleId}. Trying again. This might be due to missing Firebase config or permissions.`, error);
          try {
             // Fallback for build time issues
             console.log("Retrying poll fetch for article:", articleId);
-            const snapshot = await getDocs(q);
+            const snapshot = await getDocs(query(pollsCollection, where('articleId', '==', articleId)));
             if (snapshot.empty) return null;
             const pollDoc = snapshot.docs[0];
             return { id: pollDoc.id, ...pollDoc.data() } as Poll;
@@ -382,28 +390,17 @@ export async function getNavetanePageData(): Promise<{ navetaneData: NavetanePub
             getDoc(doc(db, 'finals_public_view', 'live'))
         ]);
         
-        let navetaneData: NavetanePublicView;
-        if (navetaneDocSnap.exists()) {
-            const data = navetaneDocSnap.data();
-            navetaneData = {
-                poules: data.poules || [],
-                coupeMatches: data.coupeMatches || [],
-                preliminaryMatch: data.preliminaryMatch || null,
-                lastPublished: data.lastPublished instanceof Timestamp 
-                    ? data.lastPublished.toDate().toISOString() 
-                    : undefined,
-            };
-        } else {
-            navetaneData = defaultNavetanePublicView;
-        }
+        const navetaneData = navetaneDocSnap.exists()
+            ? { ...defaultNavetanePublicView, ...navetaneDocSnap.data() } as NavetanePublicView
+            : defaultNavetanePublicView;
             
         const finalsData = finalsDocSnap.exists()
-            ? { ...defaultCompetitionFinals, ...finalsDocSnap.data() as CompetitionFinals }
+            ? { ...defaultCompetitionFinals, ...finalsDocSnap.data() } as CompetitionFinals
             : defaultCompetitionFinals;
 
         return { navetaneData, finalsData };
     } catch (error) {
-        console.error('Error fetching public Navetane page data:', error);
+        console.error('Error fetching public Navetane page data. This might be due to missing Firebase config or permissions.', error);
         return {
             navetaneData: defaultNavetanePublicView,
             finalsData: defaultCompetitionFinals,
@@ -419,19 +416,11 @@ export async function getPublicNavetaneStatsData(): Promise<NavetaneStats> {
     try {
         const docSnap = await getDoc(navetaneStatsAdminDoc);
         if (docSnap.exists()) {
-            const data = docSnap.data();
-            return {
-                ballonDor: data.ballonDor || [],
-                goldenBoy: data.goldenBoy || [],
-                topScorersChampionnat: data.topScorersChampionnat || [],
-                topScorersCoupe: data.topScorersCoupe || [],
-                lastResults: data.lastResults || [],
-                upcomingMatches: data.upcomingMatches || [],
-            };
+            return { ...defaultStats, ...docSnap.data() } as NavetaneStats;
         }
         return defaultStats;
     } catch (error) {
-        console.error("Error fetching Navetane stats for admin:", error);
+        console.error("Error fetching Navetane stats for admin. This might be due to missing Firebase config or permissions.", error);
         return defaultStats;
     }
 }
@@ -441,10 +430,10 @@ export async function getNavetaneStatsPageData(): Promise<NavetaneStatsPublicVie
         const publicStatsSnap = await getDoc(navetaneStatsPublicViewDoc);
         
         let stats: NavetaneStats = defaultStats;
-
         if (publicStatsSnap.exists()) {
             stats = publicStatsSnap.data() as NavetaneStats;
         } else {
+            console.warn("Public stats view not found, falling back to admin data. Publish stats from admin panel.");
             const adminStatsSnap = await getDoc(navetaneStatsAdminDoc);
             if (adminStatsSnap.exists()) {
                 stats = adminStatsSnap.data() as NavetaneStats;
@@ -452,24 +441,11 @@ export async function getNavetaneStatsPageData(): Promise<NavetaneStatsPublicVie
         }
         
         const navetaneViewDocSnap = await getDoc(navetanePublicViewDoc);
-        let preliminaryMatch: NavetanePreliminaryMatch | null = null;
-        if (navetaneViewDocSnap.exists()) {
-            const data = navetaneViewDocSnap.data();
-            preliminaryMatch = data ? (data.preliminaryMatch || null) : null;
-        }
+        const preliminaryMatch = navetaneViewDocSnap.exists() ? (navetaneViewDocSnap.data().preliminaryMatch || null) : null;
         
-        return {
-            ballonDor: stats.ballonDor || [],
-            goldenBoy: stats.goldenBoy || [],
-            topScorersChampionnat: stats.topScorersChampionnat || [],
-            topScorersCoupe: stats.topScorersCoupe || [],
-            lastResults: stats.lastResults || [],
-            upcomingMatches: stats.upcomingMatches || [],
-            preliminaryMatch,
-        };
-
+        return { ...stats, preliminaryMatch };
     } catch (error) {
-        console.error("Error fetching public Navetane stats:", error);
+        console.error("Error fetching public Navetane stats. This might be due to missing Firebase config or permissions.", error);
         return {
             ...defaultStats,
             preliminaryMatch: null,
@@ -490,7 +466,7 @@ export async function getSponsors(): Promise<Sponsor[]> {
             createdAt: doc.data().createdAt?.toDate().toISOString() || new Date().toISOString()
         } as Sponsor));
     } catch (e) {
-        console.error("Error fetching sponsors:", e);
+        console.error("Error fetching sponsors. This might be due to missing Firebase config or permissions.", e);
         return [];
     }
 }
@@ -503,7 +479,7 @@ export async function getPublicSponsors(): Promise<SponsorPublicView> {
         }
         return defaultSponsorPublicView;
     } catch (error) {
-        console.error('Error fetching public sponsors data:', error);
+        console.error('Error fetching public sponsors data. This might be due to missing Firebase config or permissions.', error);
         return defaultSponsorPublicView;
     }
 }
@@ -511,9 +487,9 @@ export async function getPublicSponsors(): Promise<SponsorPublicView> {
 
 // --- Finals Bracket Data ---
 const finalsAdminDoc = doc(db, 'finals_admin_data', 'current');
-const finalsPublicViewDoc = doc(db, 'finals_public_view', 'live');
 
 export async function getAdminFinalsData(): Promise<CompetitionFinals> {
+  try {
     const docSnap = await getDoc(finalsAdminDoc);
     if (docSnap.exists()) {
         const data = docSnap.data();
@@ -532,5 +508,8 @@ export async function getAdminFinalsData(): Promise<CompetitionFinals> {
         };
     }
     return defaultCompetitionFinals;
+  } catch(error) {
+    console.error('Error fetching admin finals data. This might be due to missing Firebase config or permissions.', error);
+    return defaultCompetitionFinals;
+  }
 }
-

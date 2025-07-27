@@ -5,7 +5,6 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -16,10 +15,37 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
+// Function to initialize Firebase
+function initializeFirebase() {
+    // Check if all required environment variables are set
+    const requiredVars = ['NEXT_PUBLIC_FIREBASE_API_KEY', 'NEXT_PUBLIC_FIREBASE_PROJECT_ID'];
+    const missingVars = requiredVars.filter(v => !process.env[v]);
+    
+    if (missingVars.length > 0) {
+        console.error(`Firebase initialization failed: Missing environment variables: ${missingVars.join(', ')}`);
+        // Return a mock or dummy object to prevent app from crashing when services are called
+        return {
+            app: null,
+            auth: null,
+            db: null,
+            storage: null,
+        };
+    }
+    
+    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    return {
+        app,
+        auth: getAuth(app),
+        db: getFirestore(app),
+        storage: getStorage(app),
+    };
+}
+
+const { app, auth, db, storage } = initializeFirebase();
+
+// We check for null before exporting to ensure services are only exported if initialized.
+if (!app || !auth || !db || !storage) {
+    console.error("Firebase services could not be initialized. The app might not function correctly.");
+}
 
 export { app, auth, db, storage };
