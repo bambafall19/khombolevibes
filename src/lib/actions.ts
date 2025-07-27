@@ -1,8 +1,7 @@
 // src/lib/actions.ts
-'use server';
+'use client';
 
 import { collection, getDocs, doc, getDoc, query, where, orderBy, addDoc, updateDoc, deleteDoc, serverTimestamp, Timestamp, setDoc, writeBatch, runTransaction } from 'firebase/firestore';
-import { revalidateTag } from 'next/cache';
 import { db } from './firebase';
 import { getCategories, getTeams, getSponsors, getAdminNavetanePoules, getAdminNavetaneCoupeMatches, getAdminPreliminaryMatch, getAdminFinalsData, generateExcerpt, getArticles, getNavetanePageData, getNavetaneStatsPageData, getPublicSponsors } from './data';
 import type { Article, Category, Media, NavetanePoule, NavetaneCoupeMatch, Team, NavetanePreliminaryMatch, Comment, NavetanePublicView, NavetaneStats, PlayerRank, Match, TeamData, Sponsor, SponsorPublicView, NavetaneStatsPublicView, CompetitionFinals, FinalsBracket, BracketMatch, Poll, PollOption, NavetaneTeam } from '@/types';
@@ -62,9 +61,6 @@ export async function voteOnPoll(pollId: string, optionId: string): Promise<Poll
           totalVotes: newTotalVotes,
       } as Poll;
     });
-
-    // Revalidate the path of the article associated with the poll
-    revalidateTag('articles');
     
     return updatedPoll;
 
@@ -77,20 +73,17 @@ export async function voteOnPoll(pollId: string, optionId: string): Promise<Poll
 // --- Category Management Actions ---
 export async function addCategory(category: Omit<Category, 'id'>) {
     const docRef = await addDoc(collection(db, 'categories'), category);
-    revalidateTag('categories');
     return docRef;
 }
 
 export async function updateCategory(id: string, category: Partial<Category>) {
     const categoryRef = doc(db, 'categories', id);
     await updateDoc(categoryRef, category);
-    revalidateTag('categories');
 }
 
 export async function deleteCategory(id: string) {
     const categoryRef = doc(db, 'categories', id);
     await deleteDoc(categoryRef);
-    revalidateTag('categories');
 }
 
 // --- Article Management Actions ---
@@ -112,7 +105,6 @@ export async function addArticle(articleData: Omit<Article, 'id' | 'publishedAt'
     };
 
     const articleDocRef = await addDoc(collection(db, 'articles'), dataToSave);
-    revalidateTag('articles');
     return { id: articleDocRef.id };
 }
 
@@ -132,13 +124,11 @@ export async function updateArticle(id: string, articleData: Partial<Omit<Articl
         updatedData.excerpt = generateExcerpt(articleData.content);
     }
     
-    // Explicitly handle empty optional image URL
     if ('imageUrl2' in articleData && articleData.imageUrl2 === '') {
         updatedData.imageUrl2 = null;
     }
 
     await updateDoc(articleRef, updatedData);
-    revalidateTag('articles');
 }
 
 export async function deleteArticle(id: string) {
@@ -155,7 +145,6 @@ export async function deleteArticle(id: string) {
     
     batch.delete(articleRef);
     await batch.commit();
-    revalidateTag('articles');
 }
 
 // --- Poll Management Actions ---
@@ -175,7 +164,6 @@ export async function addPoll(pollData: Omit<Poll, 'id' | 'options' | 'totalVote
     batch.update(articleRef, { pollId: pollDocRef.id });
     
     await batch.commit();
-    revalidateTag('articles');
     return pollDocRef;
 }
 
@@ -213,7 +201,6 @@ export async function updatePoll(id: string, pollData: Omit<Poll, 'id' | 'option
     }
      
     await batch.commit();
-    revalidateTag('articles');
 }
 
 export async function deletePoll(id: string) {
@@ -230,28 +217,24 @@ export async function deletePoll(id: string) {
 
     batch.delete(pollRef);
     await batch.commit();
-    revalidateTag('articles');
 }
 
 // --- Media Management Actions ---
 export async function addMedia(media: Omit<Media, 'id' | 'createdAt'>) {
     const dataToSave = { ...media, createdAt: serverTimestamp() };
     const res = await addDoc(collection(db, 'media'), dataToSave);
-    revalidateTag('media');
     return res;
 }
 
 export async function updateMedia(id: string, media: Partial<Omit<Media, 'id' | 'createdAt'>>) {
     const mediaRef = doc(db, 'media', id);
     const res = await updateDoc(mediaRef, media);
-    revalidateTag('media');
     return res;
 }
 
 export async function deleteMedia(id: string) {
     const mediaRef = doc(db, 'media', id);
     const res = await deleteDoc(mediaRef);
-    revalidateTag('media');
     return res;
 }
 
@@ -261,8 +244,6 @@ export async function addComment(commentData: { articleId: string; name: string;
   const newComment = { ...commentData, createdAt: serverTimestamp() };
   const docRef = await addDoc(collection(db, 'comments'), newComment);
   
-  revalidateTag('comments');
-
   return { ...commentData, id: docRef.id, createdAt: new Date().toISOString() };
 }
 
@@ -301,7 +282,6 @@ export async function publishSponsors(): Promise<void> {
             lastPublished: serverTimestamp(),
         };
         await setDoc(doc(db, 'sponsors_public_view', 'live'), publicData);
-        revalidateTag('sponsors');
     } catch (e) {
         console.error("Failed to publish sponsors data", e);
         throw e;
@@ -349,7 +329,6 @@ export async function publishNavetanePageData(): Promise<void> {
         };
 
         await setDoc(doc(db, 'navetane_public_views', 'live'), publicData);
-        revalidateTag('navetane');
 
     } catch(e) {
         console.error("Failed to publish navetane data", e);
@@ -391,7 +370,6 @@ export async function updateAndPublishNavetaneStat(stats: NavetaneStats) {
     };
     
     await setDoc(doc(db, 'navetane_stats', 'public_view'), processedStats, { merge: true });
-    revalidateTag('stats');
 }
 
 export async function publishFinalsData(): Promise<void> {
@@ -419,7 +397,6 @@ export async function publishFinalsData(): Promise<void> {
     };
 
     await setDoc(doc(db, 'finals_public_view', 'live'), publicData);
-    revalidateTag('navetane');
 }
 
 

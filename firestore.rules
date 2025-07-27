@@ -3,23 +3,24 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
   
-    // Default rule: Allow public read access, but restrict write access to authenticated users.
-    // This rule applies to ALL collections unless a more specific rule overrides it.
+    // Default rule: public read, admin-only write
     match /{document=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
-    
-    // Override for 'comments' to allow anyone to create them.
+
+    // Exception: anyone can create comments
     match /comments/{commentId} {
-      allow read, create: if true;
-      allow update, delete: if request.auth != null; // Only admin can edit/delete.
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if request.auth != null;
     }
-
-    // Override for 'polls' to allow anyone to vote (which is a write operation).
+    
+    // Exception: anyone can vote on polls
     match /polls/{pollId} {
-      allow read, write: if true;
+        allow read: if true;
+        // Allow write only to update votes, not to change the poll structure
+        allow write: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['options', 'totalVotes']);
     }
-
   }
 }

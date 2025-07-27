@@ -1,7 +1,7 @@
 // src/app/admin/navetane/page.tsx
 'use client';
 
-import { useEffect, useState, type ReactNode, useTransition } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -349,7 +349,7 @@ export default function ManageNavetanePage() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const [isPublishing, startPublishTransition] = useTransition();
+  const [isPublishing, setIsPublishing] = useState(false);
 
   // Dialog state management
   const [pouleForm, setPouleForm] = useState<{ open: boolean; data?: NavetanePoule | null }>({ open: false });
@@ -401,16 +401,17 @@ export default function ManageNavetanePage() {
     fetchData();
   };
   
-  const handlePublish = () => {
-    startPublishTransition(async () => {
-      try {
-        await publishNavetanePageData();
-        toast({ title: "Publication réussie", description: "Les données de la page Navétane ont été mises à jour." });
-      } catch (error) {
-        console.error("Failed to publish navetane data:", error);
-        toast({ variant: "destructive", title: "Erreur de publication", description: "Impossible de publier les données." });
-      }
-    });
+  const handlePublish = async () => {
+    setIsPublishing(true);
+    try {
+      await publishNavetanePageData();
+      toast({ title: "Publication réussie", description: "Les données de la page Navétane ont été mises à jour." });
+    } catch (error) {
+      console.error("Failed to publish navetane data:", error);
+      toast({ variant: "destructive", title: "Erreur de publication", description: "Impossible de publier les données." });
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   return (
