@@ -432,15 +432,22 @@ export async function updateNavetanePoule(id: string, pouleData: Partial<Omit<Na
     const pouleRef = doc(db, 'navetane_poules', id);
     const dataToUpdate: { [key: string]: any } = {};
 
-    if ('name' in pouleData) {
+    if ('name' in pouleData && pouleData.name !== undefined) {
         dataToUpdate.name = pouleData.name;
     }
     
+    // This is the critical fix. We ensure every field has a default value and is not undefined.
     if ('teams' in pouleData) {
-        dataToUpdate.teams = (pouleData.teams || []).map(({ id, team, logoUrl, pts, j, g, n, p, db }) => ({
-             id, team, logoUrl: logoUrl || '',
-             pts: pts || 0, j: j || 0, g: g || 0,
-             n: n || 0, p: p || 0, db: db || '0'
+        dataToUpdate.teams = (pouleData.teams || []).map(team => ({
+             id: team.id || nanoid(), 
+             team: team.team || '', 
+             logoUrl: team.logoUrl || '',
+             pts: team.pts ?? 0, 
+             j: team.j ?? 0, 
+             g: team.g ?? 0,
+             n: team.n ?? 0, 
+             p: team.p ?? 0, 
+             db: team.db || '0'
         }));
     }
     

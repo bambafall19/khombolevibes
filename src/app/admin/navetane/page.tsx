@@ -380,7 +380,7 @@ export default function ManageNavetanePage() {
 
   useEffect(() => {
     fetchData();
-  }, [toast]);
+  }, []);
 
   const handleDeletePoule = async (pouleId: string) => {
     await deleteNavetanePoule(pouleId);
