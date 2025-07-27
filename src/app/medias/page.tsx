@@ -57,7 +57,7 @@ export default async function MediaPage() {
                 <DialogHeader className="sr-only">
                     <DialogTitle>{item.title}</DialogTitle>
                 </DialogHeader>
-               <Carousel className="w-full">
+               <Carousel className="w-full" opts={{ loop: item.imageUrls.length > 1 }}>
                 <CarouselContent>
                   {item.imageUrls.map((url, index) => (
                     <CarouselItem key={index}>
@@ -75,8 +75,8 @@ export default async function MediaPage() {
                 </CarouselContent>
                 {item.imageUrls.length > 1 && (
                   <>
-                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
-                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
+                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10" />
+                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10" />
                   </>
                 )}
               </Carousel>
