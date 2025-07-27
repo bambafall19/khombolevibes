@@ -22,6 +22,7 @@ export default function SponsorsWidget({ sponsors, loading }: { sponsors: Sponso
         src={sponsor.logoUrl}
         alt={sponsor.name}
         fill
+        sizes="50vw"
         className="object-contain"
         title={sponsor.name}
       />

@@ -107,8 +107,8 @@ export default function HomePageClient({ articles, navetaneData, statsData, spon
                                 Articles phares
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-8">
-                            {featuredArticles.map((article) => (
-                                <ArticleCard key={article.id} article={article} />
+                            {featuredArticles.map((article, index) => (
+                                <ArticleCard key={article.id} article={article} isPriority={index === 0} />
                             ))}
                             </div>
                         </section>

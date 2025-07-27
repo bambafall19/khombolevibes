@@ -194,6 +194,7 @@ export default function ManageSponsorsPage() {
                         alt={item.name}
                         fill
                         className="object-contain"
+                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
                       />
                     </div>
                   </CardContent>

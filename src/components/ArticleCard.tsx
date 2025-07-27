@@ -10,9 +10,10 @@ import { ArrowRight } from 'lucide-react';
 
 type ArticleCardProps = {
   article: Article;
+  isPriority?: boolean;
 };
 
-const ArticleCard = ({ article }: ArticleCardProps) => {
+const ArticleCard = ({ article, isPriority = false }: ArticleCardProps) => {
   return (
     <Card className="flex flex-col h-full overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out group fade-in">
       <CardHeader className="p-0">
@@ -24,6 +25,8 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
               data-ai-hint={article.imageHint}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-500 ease-in-out"
+              priority={isPriority}
+              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
             />
           </Link>
         </div>
