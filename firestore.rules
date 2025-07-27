@@ -3,26 +3,26 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- RÈGLES SPÉCIALES ---
-
-    // La collection des sondages (polls)
-    match /polls/{pollId} {
-      // Tout le monde peut lire ET écrire pour pouvoir voter.
-      allow read, write: if true;
-    }
-
-    // La collection des commentaires
-    match /comments/{commentId} {
-      // Tout le monde peut lire et créer des commentaires.
-      allow read, create: if true;
-      // Seuls les admins peuvent modifier ou supprimer.
-      allow update, delete: if request.auth != null;
-    }
-    
-    // Règle générale pour tous les autres documents
+    // Règle générale :
+    // - Tout le monde peut lire les données (nécessaire pour le site public).
+    // - Seuls les utilisateurs authentifiés peuvent écrire (admin).
     match /{document=**} {
       allow read: if true;
       allow write: if request.auth != null;
+    }
+
+    // --- EXCEPTIONS SPÉCIFIQUES ---
+
+    // N'importe qui peut créer un commentaire.
+    // Seul un admin peut le modifier ou le supprimer (géré par la règle générale ci-dessus).
+    match /comments/{commentId} {
+      allow create: if true;
+    }
+
+    // N'importe qui peut voter dans un sondage.
+    // L'écriture est permise pour mettre à jour les comptes de votes.
+    match /polls/{pollId} {
+      allow write: if true;
     }
   }
 }
