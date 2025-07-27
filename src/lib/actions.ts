@@ -427,19 +427,19 @@ export async function addNavetanePoule(poule: Omit<NavetanePoule, 'id' | 'teams'
     return await addDoc(collection(db, 'navetane_poules'), { ...poule, teams: [] });
 }
 
-export async function updateNavetanePoule(id: string, poule: Partial<Omit<NavetanePoule, 'id'>>) {
+export async function updateNavetanePoule(id: string, pouleData: Partial<Omit<NavetanePoule, 'id'>>) {
     const pouleRef = doc(db, 'navetane_poules', id);
-    // This is the critical fix: create a clean object with only the fields
-    // that should be updated in the 'poule' document itself.
+
+    // Create a clean object with only the fields that should be updated.
     const dataToUpdate: { name?: string; teams?: NavetaneTeam[] } = {};
 
-    if (poule.name) {
-        dataToUpdate.name = poule.name;
+    if (pouleData.name) {
+        dataToUpdate.name = pouleData.name;
     }
-    // Only update teams if the field is provided.
-    // This ensures we are not sending undefined fields to Firestore.
-    if (poule.teams) {
-        dataToUpdate.teams = poule.teams.map(({ id, team, logoUrl, pts, j, g, n, p, db }) => ({
+    
+    if (pouleData.teams) {
+        // Ensure that we only pass serializable data to Firestore.
+        dataToUpdate.teams = pouleData.teams.map(({ id, team, logoUrl, pts, j, g, n, p, db }) => ({
              id,
              team,
              logoUrl: logoUrl || '',
@@ -451,6 +451,7 @@ export async function updateNavetanePoule(id: string, poule: Partial<Omit<Naveta
              db: db || '0'
         }));
     }
+    
     return await updateDoc(pouleRef, dataToUpdate);
 }
 

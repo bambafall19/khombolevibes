@@ -134,19 +134,8 @@ export default function ManageNavetanePage() {
   const { toast } = useToast();
   const [isPublishing, startPublishTransition] = useTransition();
 
-  // State for dialogs
-  const [pouleDialogOpen, setPouleDialogOpen] = useState(false);
-  const [selectedPoule, setSelectedPoule] = useState<NavetanePoule | null>(null);
-
-  const [teamDialogOpen, setTeamDialogOpen] = useState(false);
-  const [selectedTeam, setSelectedTeam] = useState<NavetaneTeam | null>(null);
-  const [currentPouleForTeam, setCurrentPouleForTeam] = useState<NavetanePoule | null>(null);
-  
-  const [coupeDialogOpen, setCoupeDialogOpen] = useState(false);
-  const [selectedCoupeMatch, setSelectedCoupeMatch] = useState<NavetaneCoupeMatch | null>(null);
-  
-  const [preliminaryDialogOpen, setPreliminaryDialogOpen] = useState(false);
-
+  // Dialog state management
+  const [dialogState, setDialogState] = useState<{ type: string | null; data?: any }>({ type: null });
 
   const fetchData = async () => {
     setLoading(true);
@@ -157,7 +146,7 @@ export default function ManageNavetanePage() {
         getTeams(),
         getAdminPreliminaryMatch(),
       ]);
-      setPoules(fetchedPoules);
+      setPoules(fetchedPoules.sort((a, b) => a.name.localeCompare(b.name)));
       setCoupeMatches(fetchedCoupeMatches);
       setTeams(fetchedTeams);
       setPreliminaryMatch(fetchedPreliminaryMatch);
@@ -175,8 +164,9 @@ export default function ManageNavetanePage() {
 
   // --- Handlers for Poules ---
   const handlePouleSubmit = async (values: PouleFormData) => {
-    if (selectedPoule) {
-      await updateNavetanePoule(selectedPoule.id, values);
+    const { data: poule } = dialogState;
+    if (poule) {
+      await updateNavetanePoule(poule.id, values);
       toast({ title: "Poule modifiée" });
     } else {
       await addNavetanePoule(values);
@@ -193,7 +183,8 @@ export default function ManageNavetanePage() {
 
   // --- Handlers for Teams ---
   const handleTeamSubmit = async (values: TeamFormData) => {
-    if (!currentPouleForTeam) return;
+    const { data: { poule } } = dialogState;
+    if (!poule) return;
 
     const selectedTeamData = teams.find(t => t.id === values.teamId);
     if (!selectedTeamData) {
@@ -203,19 +194,18 @@ export default function ManageNavetanePage() {
 
     const teamToSave: NavetaneTeam = {
       ...values, 
-      id: selectedTeamData.id, // Use the actual team ID
-      team: selectedTeamData.name, // Use the canonical team name
-      logoUrl: selectedTeamData.logoUrl, // Use the canonical team logo
+      id: selectedTeamData.id,
+      team: selectedTeamData.name,
+      logoUrl: selectedTeamData.logoUrl,
     };
 
     let updatedTeams: NavetaneTeam[];
-    const existingTeams = currentPouleForTeam.teams || [];
+    const existingTeams = poule.teams || [];
+    const existingTeam = dialogState.data?.team;
 
-    if (selectedTeam) { // Editing existing team
-      updatedTeams = existingTeams.map(t => 
-        t.id === selectedTeam.id ? teamToSave : t
-      );
-    } else { // Adding new team
+    if (existingTeam) {
+      updatedTeams = existingTeams.map(t => t.id === existingTeam.id ? teamToSave : t);
+    } else {
       if (existingTeams.some(t => t.id === teamToSave.id)) {
         toast({ variant: 'destructive', title: 'Erreur', description: 'Cette équipe est déjà dans la poule.' });
         return;
@@ -223,8 +213,8 @@ export default function ManageNavetanePage() {
       updatedTeams = [...existingTeams, teamToSave];
     }
     
-    await updateNavetanePoule(currentPouleForTeam.id, { teams: updatedTeams });
-    toast({ title: selectedTeam ? "Équipe modifiée" : "Équipe ajoutée" });
+    await updateNavetanePoule(poule.id, { teams: updatedTeams });
+    toast({ title: existingTeam ? "Équipe modifiée" : "Équipe ajoutée" });
     fetchData();
   };
 
@@ -243,8 +233,9 @@ export default function ManageNavetanePage() {
   };
 
   const handleCoupeMatchSubmit = async (values: CoupeMatchFormData) => {
-    if (selectedCoupeMatch) {
-      await updateNavetaneCoupeMatch(selectedCoupeMatch.id, values);
+    const { data: match } = dialogState;
+    if (match) {
+      await updateNavetaneCoupeMatch(match.id, values);
       toast({ title: "Match modifié" });
     } else {
       await addNavetaneCoupeMatch(values);
@@ -273,7 +264,8 @@ export default function ManageNavetanePage() {
 
   const teamFormFields = ({ control, register, formState: { errors }, watch }: ReturnType<typeof useForm<TeamFormData>>) => {
       const selectedTeamId = watch('teamId');
-      const isTeamAlreadyInPoule = (currentPouleForTeam?.teams || []).some(t => t.id === selectedTeamId) && selectedTeam?.id !== selectedTeamId;
+      const isEditing = !!dialogState.data?.team;
+      const isTeamAlreadyInPoule = (dialogState.data?.poule?.teams || []).some((t: Team) => t.id === selectedTeamId) && dialogState.data?.team?.id !== selectedTeamId;
       
       return (
         <div className="space-y-2">
@@ -283,7 +275,7 @@ export default function ManageNavetanePage() {
               control={control}
               name="teamId"
               render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value} disabled={!!selectedTeam}>
+                <Select onValueChange={field.onChange} value={field.value} disabled={isEditing}>
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner une équipe" />
                   </SelectTrigger>
@@ -348,27 +340,10 @@ export default function ManageNavetanePage() {
                   <CardTitle>Poules du Championnat</CardTitle>
                   <CardDescription>Gérez les équipes et leur classement dans chaque poule.</CardDescription>
                 </div>
-                <FormDialog
-                  isOpen={pouleDialogOpen && !selectedPoule}
-                  onOpenChange={setPouleDialogOpen}
-                  schema={pouleSchema}
-                  defaultValues={{ name: '' }}
-                  title="Ajouter une poule"
-                  description="Créez une nouvelle poule pour le championnat."
-                  onSubmit={handlePouleSubmit}
-                  formFields={({ register, formState: { errors } }) => (
-                    <div>
-                      <Label htmlFor="name">Nom de la poule</Label>
-                      <Input id="name" {...register('name')} />
-                      {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
-                    </div>
-                  )}
-                >
-                  <Button size="sm" onClick={() => { setSelectedPoule(null); setPouleDialogOpen(true); }}>
+                <Button size="sm" onClick={() => setDialogState({ type: 'poule.edit' })}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Ajouter une poule
-                  </Button>
-                </FormDialog>
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -378,24 +353,7 @@ export default function ManageNavetanePage() {
                     <div className="flex justify-between items-center mb-2">
                       <h3 className="font-bold text-lg">{poule.name}</h3>
                       <div>
-                        <FormDialog
-                          isOpen={pouleDialogOpen && selectedPoule?.id === poule.id}
-                          onOpenChange={setPouleDialogOpen}
-                          schema={pouleSchema}
-                          defaultValues={{ name: poule.name }}
-                          title="Modifier la poule"
-                          description="Changez le nom de la poule."
-                          onSubmit={handlePouleSubmit}
-                           formFields={({ register, formState: { errors } }) => (
-                            <div>
-                              <Label htmlFor="name">Nom de la poule</Label>
-                              <Input id="name" {...register('name')} />
-                              {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
-                            </div>
-                          )}
-                        >
-                           <Button variant="ghost" size="icon" onClick={() => { setSelectedPoule(poule); setPouleDialogOpen(true); }}><Pencil className="h-4 w-4" /></Button>
-                        </FormDialog>
+                        <Button variant="ghost" size="icon" onClick={() => setDialogState({ type: 'poule.edit', data: poule })}><Pencil className="h-4 w-4" /></Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-destructive"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
                           <AlertDialogContent>
@@ -432,18 +390,7 @@ export default function ManageNavetanePage() {
                             <TableCell className="text-center">{team.p}</TableCell>
                             <TableCell className="text-center">{team.db}</TableCell>
                             <TableCell className="text-right">
-                               <FormDialog
-                                  isOpen={teamDialogOpen && selectedTeam?.id === team.id && currentPouleForTeam?.id === poule.id}
-                                  onOpenChange={setTeamDialogOpen}
-                                  schema={teamSchema}
-                                  defaultValues={{...team, teamId: team.id}}
-                                  title={`Modifier ${team.team}`}
-                                  description={`Modifiez les détails de l'équipe dans ${poule.name}.`}
-                                  onSubmit={handleTeamSubmit}
-                                  formFields={teamFormFields}
-                              >
-                                  <Button variant="ghost" size="icon" onClick={() => { setCurrentPouleForTeam(poule); setSelectedTeam(team); setTeamDialogOpen(true); }}><Pencil className="h-4 w-4" /></Button>
-                              </FormDialog>
+                               <Button variant="ghost" size="icon" onClick={() => setDialogState({ type: 'team.edit', data: { poule, team } })}><Pencil className="h-4 w-4" /></Button>
                               <AlertDialog>
                                 <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-destructive"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
                                 <AlertDialogContent>
@@ -456,20 +403,9 @@ export default function ManageNavetanePage() {
                         ))}
                       </TableBody>
                     </Table>
-                     <FormDialog
-                          isOpen={teamDialogOpen && !selectedTeam && currentPouleForTeam?.id === poule.id}
-                          onOpenChange={setTeamDialogOpen}
-                          schema={teamSchema}
-                          defaultValues={{ teamId: '', pts: 0, j: 0, g: 0, n: 0, p: 0, db: '0' }}
-                          title={`Ajouter une équipe à ${poule.name}`}
-                          description="Remplissez les informations de la nouvelle équipe."
-                          onSubmit={handleTeamSubmit}
-                          formFields={teamFormFields}
-                      >
-                         <Button variant="outline" size="sm" className="mt-4 w-full" onClick={() => { setCurrentPouleForTeam(poule); setSelectedTeam(null); setTeamDialogOpen(true); }}>
-                            <PlusCircle className="mr-2 h-4 w-4" /> Ajouter une équipe
-                          </Button>
-                      </FormDialog>
+                     <Button variant="outline" size="sm" className="mt-4 w-full" onClick={() => setDialogState({ type: 'team.edit', data: { poule } })}>
+                        <PlusCircle className="mr-2 h-4 w-4" /> Ajouter une équipe
+                      </Button>
                   </div>
                 ))}
               </div>
@@ -485,36 +421,7 @@ export default function ManageNavetanePage() {
                 <div>
                     <div className='flex justify-between items-center'>
                         <h4 className="font-semibold text-lg">Match Préliminaire</h4>
-                        <FormDialog
-                            isOpen={preliminaryDialogOpen}
-                            onOpenChange={setPreliminaryDialogOpen}
-                            schema={preliminaryMatchSchema}
-                            defaultValues={{ teamA: preliminaryMatch?.teamA || '', teamB: preliminaryMatch?.teamB || '', winnerPlaysAgainst: preliminaryMatch?.winnerPlaysAgainst || '' }}
-                            title="Modifier le Match Préliminaire"
-                            description="Définissez le match préliminaire et l'adversaire du vainqueur."
-                            onSubmit={handlePreliminaryMatchSubmit}
-                            formFields={({ control, formState: { errors } }) => (
-                                <div className="space-y-4">
-                                    <div>
-                                        <Label>Équipe A (Préliminaire)</Label>
-                                        <Controller control={control} name="teamA" render={({ field }) => teamSelect(field, "Équipe A")} />
-                                        {errors.teamA && <p className="text-sm text-destructive">{typeof errors.teamA.message === 'string' ? errors.teamA.message : ''}</p>}
-                                    </div>
-                                    <div>
-                                        <Label>Équipe B (Préliminaire)</Label>
-                                        <Controller control={control} name="teamB" render={({ field }) => teamSelect(field, "Équipe B")} />
-                                        {errors.teamB && <p className="text-sm text-destructive">{typeof errors.teamB.message === 'string' ? errors.teamB.message : ''}</p>}
-                                    </div>
-                                    <div>
-                                        <Label>Le Vainqueur Joue Contre</Label>
-                                        <Controller control={control} name="winnerPlaysAgainst" render={({ field }) => teamSelect(field, "Adversaire")} />
-                                        {errors.winnerPlaysAgainst && <p className="text-sm text-destructive">{typeof errors.winnerPlaysAgainst.message === 'string' ? errors.winnerPlaysAgainst.message : ''}</p>}
-                                    </div>
-                                </div>
-                            )}
-                        >
-                            <Button variant="outline" size="sm" onClick={() => setPreliminaryDialogOpen(true)}><Pencil className="mr-2 h-4 w-4" /> Modifier</Button>
-                        </FormDialog>
+                        <Button variant="outline" size="sm" onClick={() => setDialogState({ type: 'preliminary.edit' })}><Pencil className="mr-2 h-4 w-4" /> Modifier</Button>
                     </div>
                      {preliminaryMatch && preliminaryMatch.teamA && preliminaryMatch.teamB && preliminaryMatch.winnerPlaysAgainst ? (
                          <div className="flex items-center justify-center p-3 mt-2 bg-muted/50 rounded-lg border">
@@ -532,58 +439,17 @@ export default function ManageNavetanePage() {
                 <div>
                     <div className="flex justify-between items-center mb-2">
                         <h4 className="font-semibold text-lg">Tour Principal</h4>
-                         <FormDialog
-                            isOpen={coupeDialogOpen && !selectedCoupeMatch}
-                            onOpenChange={setCoupeDialogOpen}
-                            schema={coupeMatchSchema}
-                            defaultValues={{ teamA: '', teamB: '' }}
-                            title="Ajouter un match"
-                            description="Créez une nouvelle affiche pour le tour principal."
-                            onSubmit={handleCoupeMatchSubmit}
-                            formFields={({ control, formState: { errors } }) => (
-                              <div className="space-y-4">
-                                 <div>
-                                  <Label>Équipe A</Label>
-                                  <Controller control={control} name="teamA" render={({ field }) => teamSelect(field, "Sélectionner l'équipe A")} />
-                                  {errors.teamA && <p className="text-sm text-destructive">{typeof errors.teamA.message === 'string' ? errors.teamA.message : ''}</p>}
-                                </div>
-                                <div>
-                                  <Label>Équipe B</Label>
-                                  <Controller control={control} name="teamB" render={({ field }) => teamSelect(field, "Sélectionner l'équipe B")} />
-                                   {errors.teamB && <p className="text-sm text-destructive">{typeof errors.teamB.message === 'string' ? errors.teamB.message : ''}</p>}
-                                </div>
-                              </div>
-                            )}
-                          >
-                            <Button size="sm" onClick={() => { setSelectedCoupeMatch(null); setCoupeDialogOpen(true)}}>
-                              <PlusCircle className="mr-2 h-4 w-4" />
-                              Ajouter un match
-                            </Button>
-                          </FormDialog>
+                        <Button size="sm" onClick={() => setDialogState({ type: 'coupe.edit' })}>
+                          <PlusCircle className="mr-2 h-4 w-4" />
+                          Ajouter un match
+                        </Button>
                     </div>
                      <div className="space-y-2">
                         {coupeMatches.map((match) => (
                            <div key={match.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border">
                             <p className="font-medium flex items-center">{match.teamA} <span className="mx-2 text-primary font-bold">vs</span> {match.teamB}</p>
                              <div>
-                                <FormDialog isOpen={coupeDialogOpen && selectedCoupeMatch?.id === match.id} onOpenChange={setCoupeDialogOpen} schema={coupeMatchSchema} defaultValues={match} title="Modifier le match" description="Changez les équipes de l'affiche." onSubmit={handleCoupeMatchSubmit}
-                                   formFields={({ control, formState: { errors } }) => (
-                                      <div className="space-y-4">
-                                        <div>
-                                          <Label>Équipe A</Label>
-                                           <Controller control={control} name="teamA" render={({ field }) => teamSelect(field, "Sélectionner l'équipe A")} />
-                                          {errors.teamA && <p className="text-sm text-destructive">{typeof errors.teamA.message === 'string' ? errors.teamA.message : ''}</p>}
-                                        </div>
-                                        <div>
-                                          <Label>Équipe B</Label>
-                                           <Controller control={control} name="teamB" render={({ field }) => teamSelect(field, "Sélectionner l'équipe B")} />
-                                          {errors.teamB && <p className="text-sm text-destructive">{typeof errors.teamB.message === 'string' ? errors.teamB.message : ''}</p>}
-                                        </div>
-                                      </div>
-                                    )}
-                                >
-                                    <Button variant="ghost" size="icon" onClick={() => { setSelectedCoupeMatch(match); setCoupeDialogOpen(true); }}><Pencil className="h-4 w-4" /></Button>
-                                </FormDialog>
+                                <Button variant="ghost" size="icon" onClick={() => setDialogState({ type: 'coupe.edit', data: match })}><Pencil className="h-4 w-4" /></Button>
                                  <AlertDialog>
                                   <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-destructive"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
                                   <AlertDialogContent>
@@ -600,6 +466,105 @@ export default function ManageNavetanePage() {
           </Card>
         </div>
       )}
+
+      {/* --- Dialogs --- */}
+      <FormDialog
+        isOpen={dialogState.type === 'poule.edit'}
+        onOpenChange={() => setDialogState({ type: null })}
+        schema={pouleSchema}
+        defaultValues={{ name: dialogState.data?.name || '' }}
+        title={dialogState.data ? 'Modifier la poule' : 'Ajouter une poule'}
+        description={dialogState.data ? 'Changez le nom de la poule.' : 'Créez une nouvelle poule.'}
+        onSubmit={handlePouleSubmit}
+        formFields={({ register, formState: { errors } }) => (
+            <div>
+                <Label htmlFor="name">Nom de la poule</Label>
+                <Input id="name" {...register('name')} />
+                {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+            </div>
+        )}
+      >
+        <></>
+      </FormDialog>
+      
+      <FormDialog
+          isOpen={dialogState.type === 'team.edit'}
+          onOpenChange={() => setDialogState({ type: null })}
+          schema={teamSchema}
+          defaultValues={{
+              teamId: dialogState.data?.team?.id || '',
+              pts: dialogState.data?.team?.pts || 0,
+              j: dialogState.data?.team?.j || 0,
+              g: dialogState.data?.team?.g || 0,
+              n: dialogState.data?.team?.n || 0,
+              p: dialogState.data?.team?.p || 0,
+              db: dialogState.data?.team?.db || '0',
+          }}
+          title={dialogState.data?.team ? `Modifier ${dialogState.data.team.team}` : `Ajouter une équipe à ${dialogState.data?.poule?.name}`}
+          description={dialogState.data?.team ? `Modifiez les détails de l'équipe dans ${dialogState.data?.poule?.name}.` : "Remplissez les informations de la nouvelle équipe."}
+          onSubmit={handleTeamSubmit}
+          formFields={teamFormFields}
+      >
+        <></>
+      </FormDialog>
+
+      <FormDialog
+          isOpen={dialogState.type === 'preliminary.edit'}
+          onOpenChange={() => setDialogState({ type: null })}
+          schema={preliminaryMatchSchema}
+          defaultValues={{ teamA: preliminaryMatch?.teamA || '', teamB: preliminaryMatch?.teamB || '', winnerPlaysAgainst: preliminaryMatch?.winnerPlaysAgainst || '' }}
+          title="Modifier le Match Préliminaire"
+          description="Définissez le match et l'adversaire du vainqueur."
+          onSubmit={handlePreliminaryMatchSubmit}
+          formFields={({ control, formState: { errors } }) => (
+              <div className="space-y-4">
+                  <div>
+                      <Label>Équipe A (Préliminaire)</Label>
+                      <Controller control={control} name="teamA" render={({ field }) => teamSelect(field, "Équipe A")} />
+                      {errors.teamA && <p className="text-sm text-destructive">{typeof errors.teamA.message === 'string' ? errors.teamA.message : ''}</p>}
+                  </div>
+                  <div>
+                      <Label>Équipe B (Préliminaire)</Label>
+                      <Controller control={control} name="teamB" render={({ field }) => teamSelect(field, "Équipe B")} />
+                      {errors.teamB && <p className="text-sm text-destructive">{typeof errors.teamB.message === 'string' ? errors.teamB.message : ''}</p>}
+                  </div>
+                  <div>
+                      <Label>Le Vainqueur Joue Contre</Label>
+                      <Controller control={control} name="winnerPlaysAgainst" render={({ field }) => teamSelect(field, "Adversaire")} />
+                      {errors.winnerPlaysAgainst && <p className="text-sm text-destructive">{typeof errors.winnerPlaysAgainst.message === 'string' ? errors.winnerPlaysAgainst.message : ''}</p>}
+                  </div>
+              </div>
+          )}
+      >
+          <></>
+      </FormDialog>
+
+      <FormDialog
+          isOpen={dialogState.type === 'coupe.edit'}
+          onOpenChange={() => setDialogState({ type: null })}
+          schema={coupeMatchSchema}
+          defaultValues={{ teamA: dialogState.data?.teamA || '', teamB: dialogState.data?.teamB || '' }}
+          title={dialogState.data ? 'Modifier le match' : 'Ajouter un match'}
+          description={dialogState.data ? "Changez les équipes de l'affiche." : 'Créez une nouvelle affiche.'}
+          onSubmit={handleCoupeMatchSubmit}
+          formFields={({ control, formState: { errors } }) => (
+            <div className="space-y-4">
+               <div>
+                <Label>Équipe A</Label>
+                <Controller control={control} name="teamA" render={({ field }) => teamSelect(field, "Sélectionner l'équipe A")} />
+                {errors.teamA && <p className="text-sm text-destructive">{typeof errors.teamA.message === 'string' ? errors.teamA.message : ''}</p>}
+              </div>
+              <div>
+                <Label>Équipe B</Label>
+                <Controller control={control} name="teamB" render={({ field }) => teamSelect(field, "Sélectionner l'équipe B")} />
+                 {errors.teamB && <p className="text-sm text-destructive">{typeof errors.teamB.message === 'string' ? errors.teamB.message : ''}</p>}
+              </div>
+            </div>
+          )}
+        >
+          <></>
+        </FormDialog>
+
     </div>
   );
 }
