@@ -1,6 +1,9 @@
 
 import type {NextConfig} from 'next';
 
+// Load environment variables from .env file
+require('dotenv').config();
+
 const nextConfig: NextConfig = {
   /* config options here */
   typescript: {
