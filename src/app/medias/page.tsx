@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import { getPublicMedia } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
-import { ImageIcon } from 'lucide-react';
+import { ImageIcon, CameraOff } from 'lucide-react';
 import type { Metadata } from 'next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
@@ -47,7 +47,7 @@ export default async function MediaPage() {
                     <h3 className="font-semibold truncate">{item.title}</h3>
                     <p className="text-sm text-muted-foreground capitalize flex items-center gap-2 mt-1">
                       <ImageIcon className="w-4 h-4" />
-                      {item.imageUrls.length} Photo(s)
+                      {item.imageUrls?.length || 0} Photo(s)
                     </p>
                   </div>
                 </CardContent>
@@ -57,29 +57,37 @@ export default async function MediaPage() {
                 <DialogHeader className="sr-only">
                     <DialogTitle>{item.title}</DialogTitle>
                 </DialogHeader>
-               <Carousel className="w-full" opts={{ loop: item.imageUrls.length > 1 }}>
-                <CarouselContent>
-                  {item.imageUrls.map((url, index) => (
-                    <CarouselItem key={index}>
-                      <div className="relative aspect-video">
-                         <Image
-                            src={url}
-                            alt={`${item.title} - Image ${index + 1}`}
-                            fill
-                            sizes="100vw"
-                            className="object-contain"
-                          />
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                {item.imageUrls.length > 1 && (
-                  <>
-                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10" />
-                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10" />
-                  </>
+                {item.imageUrls && item.imageUrls.length > 0 ? (
+                    <Carousel className="w-full" opts={{ loop: item.imageUrls.length > 1 }}>
+                        <CarouselContent>
+                        {item.imageUrls.map((url, index) => (
+                            <CarouselItem key={index}>
+                            <div className="relative aspect-video">
+                                <Image
+                                    src={url}
+                                    alt={`${item.title} - Image ${index + 1}`}
+                                    fill
+                                    sizes="100vw"
+                                    className="object-contain"
+                                />
+                            </div>
+                            </CarouselItem>
+                        ))}
+                        </CarouselContent>
+                        {item.imageUrls.length > 1 && (
+                        <>
+                            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10" />
+                            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10" />
+                        </>
+                        )}
+                    </Carousel>
+                ) : (
+                    <div className="flex flex-col items-center justify-center aspect-video text-muted-foreground">
+                        <CameraOff className="w-16 h-16 mb-4" />
+                        <h3 className="font-semibold text-lg">Aucune photo dans cet album</h3>
+                        <p className="text-sm">Les images pour "{item.title}" n'ont pas pu être chargées.</p>
+                    </div>
                 )}
-              </Carousel>
             </DialogContent>
           </Dialog>
         ))}

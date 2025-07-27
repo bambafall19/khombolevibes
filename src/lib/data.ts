@@ -204,11 +204,17 @@ export async function getAdminMedia(forceRefresh: boolean = false): Promise<Medi
             mediaCache = [];
             return [];
         }
-        const mediaList = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            createdAt: doc.data().createdAt?.toDate().toISOString() || new Date().toISOString()
-        } as Media));
+        const mediaList = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                title: data.title || '',
+                thumbnailUrl: data.thumbnailUrl || '',
+                thumbnailHint: data.thumbnailHint || '',
+                imageUrls: data.imageUrls || [],
+                createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString()
+            } as Media
+        });
         mediaCache = mediaList;
         return mediaList;
     } catch (error) {
@@ -223,11 +229,17 @@ export async function getPublicMedia(): Promise<Media[]> {
         if (snapshot.empty) {
             return [];
         }
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            createdAt: doc.data().createdAt?.toDate().toISOString() || new Date().toISOString()
-        } as Media));
+        return snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                title: data.title || '',
+                thumbnailUrl: data.thumbnailUrl || '',
+                thumbnailHint: data.thumbnailHint || '',
+                imageUrls: data.imageUrls || [],
+                createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString()
+            } as Media
+        });
     } catch (error) {
         console.error("Error fetching public media from Firestore: ", error);
         return [];
