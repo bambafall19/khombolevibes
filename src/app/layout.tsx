@@ -12,6 +12,9 @@ import ClientToaster from '@/components/ClientToaster';
 import BottomNavBar from '@/components/BottomNavBar';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Jost, Josefin_Sans } from 'next/font/google';
+import GoogleTagManager from '@/components/GoogleTagManager';
+import { Suspense } from 'react';
+
 
 const jost = Jost({
   subsets: ['latin'],
@@ -51,7 +54,10 @@ export default async function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <head />
-      <body className={cn("font-body antialiased bg-background text-foreground", jost.variable, josefinSans.variable)}>
+      <body>
+         <Suspense fallback={null}>
+            <GoogleTagManager />
+        </Suspense>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
