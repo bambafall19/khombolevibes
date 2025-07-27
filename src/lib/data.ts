@@ -229,16 +229,21 @@ export async function getAdminMedia(forceRefresh: boolean = false): Promise<Medi
 }
 
 export async function getPublicMedia(): Promise<Media[]> {
-     try {
+    try {
         const docSnap = await getDoc(mediaPublicViewDoc);
-        if (docSnap.exists()) {
-            const data = docSnap.data() as MediaPublicView;
-            return data.media || [];
+        if (docSnap.exists() && docSnap.data()?.media) {
+            return docSnap.data().media as Media[];
         }
-        return [];
+        // Fallback for build time: read directly from admin collection
+        return await getAdminMedia(true);
     } catch (error) {
-        console.error("Error fetching public media from Firestore: ", error);
-        return [];
+        console.error("Error fetching public media, falling back to admin data:", error);
+        try {
+            return await getAdminMedia(true);
+        } catch (adminError) {
+            console.error("Error fetching admin media as fallback:", adminError);
+            return [];
+        }
     }
 }
 
@@ -423,24 +428,19 @@ export async function getPublicNavetaneStatsData(): Promise<NavetaneStats> {
 
 export async function getNavetaneStatsPageData(): Promise<NavetaneStatsPublicView> {
     try {
-        // First, try to get the public view. This is the fastest and most efficient way.
         const publicStatsSnap = await getDoc(navetaneStatsPublicViewDoc);
         
         let stats: NavetaneStats = defaultStats;
 
-        // If the public view exists, use it.
         if (publicStatsSnap.exists()) {
             stats = publicStatsSnap.data() as NavetaneStats;
         } else {
-            // As a fallback (especially during build time on Vercel), read the admin data.
-            // This ensures the page is never empty if the publish function hasn't run yet.
             const adminStatsSnap = await getDoc(navetaneStatsAdminDoc);
             if (adminStatsSnap.exists()) {
                 stats = adminStatsSnap.data() as NavetaneStats;
             }
         }
         
-        // Fetch preliminary match data separately
         const navetaneViewDocSnap = await getDoc(navetanePublicViewDoc);
         let preliminaryMatch: NavetanePreliminaryMatch | null = null;
         if (navetaneViewDocSnap.exists()) {
