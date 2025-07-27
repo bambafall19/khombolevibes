@@ -9,7 +9,7 @@ import { Label } from './ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { voteOnPoll } from '@/lib/actions';
 import type { Poll, PollOption } from '@/types';
-import { Vote, Loader2, BarChartHorizontal } from 'lucide-react';
+import { Vote, Loader2, BarChartHorizontal, CheckCircle } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
 
 export default function PollWidget({ initialPoll }: { initialPoll: Poll }) {
@@ -20,7 +20,6 @@ export default function PollWidget({ initialPoll }: { initialPoll: Poll }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Each poll is now prefixed with its ID to avoid conflicts
     const votedPolls = JSON.parse(localStorage.getItem('votedPolls') || '[]');
     if (votedPolls.includes(poll.id)) {
       setHasVoted(true);
@@ -50,24 +49,12 @@ export default function PollWidget({ initialPoll }: { initialPoll: Poll }) {
       }
     });
   };
-
-  const PollResults = ({ options, totalVotes }: { options: PollOption[], totalVotes: number }) => (
-    <div className="space-y-3">
-        {options.sort((a,b) => b.votes - a.votes).map(option => {
-            const percentage = totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0;
-            return (
-                <div key={option.id} className="text-sm">
-                    <div className="flex justify-between items-center mb-1">
-                        <span className="font-medium">{option.text}</span>
-                        <span className="text-muted-foreground">{option.votes} ({Math.round(percentage)}%)</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2.5">
-                        <div className="bg-primary h-2.5 rounded-full" style={{ width: `${percentage}%` }}></div>
-                    </div>
-                </div>
-            )
-        })}
-        <p className="text-xs text-muted-foreground text-right pt-2">Total de {totalVotes} votes</p>
+  
+  const VotedConfirmation = () => (
+    <div className="text-center py-4">
+        <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
+        <p className="font-semibold text-lg">Merci d'avoir voté !</p>
+        <p className="text-muted-foreground text-sm">Votre voix a été enregistrée.</p>
     </div>
   );
 
@@ -82,7 +69,7 @@ export default function PollWidget({ initialPoll }: { initialPoll: Poll }) {
       </CardHeader>
       <CardContent>
         {hasVoted ? (
-            <PollResults options={poll.options} totalVotes={poll.totalVotes} />
+            <VotedConfirmation />
         ) : (
             <div className="space-y-4">
                 <RadioGroup onValueChange={setSelectedOption} value={selectedOption || ''}>
