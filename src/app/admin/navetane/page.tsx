@@ -12,7 +12,7 @@ import { addNavetanePoule, updateNavetanePoule, deleteNavetanePoule, addNavetane
 import type { NavetanePoule, NavetaneCoupeMatch, NavetaneTeam, Team, NavetanePreliminaryMatch } from '@/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useFormState } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';

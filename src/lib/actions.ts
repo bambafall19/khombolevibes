@@ -437,6 +437,7 @@ export async function updateNavetanePoule(id: string, pouleData: Partial<Omit<Na
     }
     
     if ('teams' in pouleData) {
+        // Sanitize the teams array to ensure all fields are valid for Firestore
         dataToUpdate.teams = (pouleData.teams || []).map(team => ({
              id: team.id || '', 
              team: team.team || '', 
