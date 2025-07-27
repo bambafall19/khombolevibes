@@ -5,9 +5,11 @@ import Script from 'next/script'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 
-const pageview = (url: string, gaId?: string) => {
-  if (typeof window.gtag !== 'undefined' && gaId) {
-    window.gtag('config', gaId, {
+const GA_TRACKING_ID = 'G-JEQX9W6JNW';
+
+const pageview = (url: string) => {
+  if (typeof window.gtag !== 'undefined' && GA_TRACKING_ID) {
+    window.gtag('config', GA_TRACKING_ID, {
       page_path: url,
     })
   }
@@ -19,19 +21,16 @@ declare global {
     }
 }
 
-export default function GoogleAnalytics({ gaId }: { gaId?: string }) {
+export default function GoogleAnalytics() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    if (pathname) {
-      const url = pathname + searchParams.toString()
-      pageview(url, gaId)
-    }
-  }, [pathname, searchParams, gaId])
+    const url = pathname + searchParams.toString()
+    pageview(url)
+  }, [pathname, searchParams])
 
-  if (!gaId) {
-    console.warn("Google Analytics ID is missing. Add NEXT_PUBLIC_GA_ID to your environment variables.");
+  if (!GA_TRACKING_ID) {
     return null;
   }
 
@@ -39,7 +38,7 @@ export default function GoogleAnalytics({ gaId }: { gaId?: string }) {
     <>
       <Script
         strategy="afterInteractive"
-        src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+        src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
       />
       <Script
         id="google-analytics"
@@ -49,7 +48,7 @@ export default function GoogleAnalytics({ gaId }: { gaId?: string }) {
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', '${gaId}');
+            gtag('config', '${GA_TRACKING_ID}');
           `,
         }}
       />

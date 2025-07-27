@@ -54,7 +54,7 @@ export default async function RootLayout({
     <html lang="fr" suppressHydrationWarning>
       <head />
       <body>
-         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+         <GoogleAnalytics />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
