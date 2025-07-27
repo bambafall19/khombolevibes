@@ -1,7 +1,7 @@
 // src/app/admin/phases-finales/page.tsx
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -162,7 +162,7 @@ export default function ManageFinalsPage() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isPublishing, startPublishTransition] = useTransition();
+  const [isPublishing, setIsPublishing] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -205,16 +205,17 @@ export default function ManageFinalsPage() {
     }
   };
 
-  const handlePublish = () => {
-    startPublishTransition(async () => {
-        try {
-            await publishFinalsData();
-            toast({ title: "Publication réussie", description: "Les phases finales sont visibles sur le site public." });
-        } catch (error) {
-            console.error(error);
-            toast({ variant: "destructive", title: "Erreur de publication", description: "Impossible de publier les données." });
-        }
-    });
+  const handlePublish = async () => {
+    setIsPublishing(true);
+    try {
+        await publishFinalsData();
+        toast({ title: "Publication réussie", description: "Les phases finales sont visibles sur le site public." });
+    } catch (error) {
+        console.error(error);
+        toast({ variant: "destructive", title: "Erreur de publication", description: "Impossible de publier les données." });
+    } finally {
+        setIsPublishing(false);
+    }
   };
 
   if (loading || !data) {

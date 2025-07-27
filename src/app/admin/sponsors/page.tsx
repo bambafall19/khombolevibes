@@ -1,7 +1,7 @@
 // src/app/admin/sponsors/page.tsx
 'use client';
 
-import { useEffect, useState, type ReactNode, useTransition } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -94,7 +94,7 @@ export default function ManageSponsorsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isPublishing, startPublishTransition] = useTransition();
+  const [isPublishing, setIsPublishing] = useState(false);
   const { toast } = useToast();
 
   const fetchData = async () => {
@@ -126,16 +126,17 @@ export default function ManageSponsorsPage() {
     }
   };
 
-  const handlePublish = () => {
-    startPublishTransition(async () => {
-      try {
-        await publishSponsors();
-        toast({ title: "Publication réussie", description: "La liste des sponsors a été mise à jour sur le site public." });
-      } catch (error) {
-        console.error("Failed to publish sponsors:", error);
-        toast({ variant: "destructive", title: "Erreur de publication", description: "Impossible de publier les données." });
-      }
-    });
+  const handlePublish = async () => {
+    setIsPublishing(true);
+    try {
+      await publishSponsors();
+      toast({ title: "Publication réussie", description: "La liste des sponsors a été mise à jour sur le site public." });
+    } catch (error) {
+      console.error("Failed to publish sponsors:", error);
+      toast({ variant: "destructive", title: "Erreur de publication", description: "Impossible de publier les données." });
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   return (
