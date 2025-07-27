@@ -3,26 +3,29 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Règle générale :
-    // - Tout le monde peut lire les données (nécessaire pour le site public).
-    // - Seuls les utilisateurs authentifiés peuvent écrire (admin).
+    // Règle par défaut : Tout le monde peut lire. Seuls les admins peuvent écrire.
+    // Cela s'applique à toutes les collections (articles, categories, teams, etc.)
+    // sauf si une règle plus spécifique est définie ci-dessous.
     match /{document=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
 
-    // --- EXCEPTIONS SPÉCIFIQUES ---
+    // --- EXCEPTIONS AUX RÈGLES PAR DÉFAUT ---
 
-    // N'importe qui peut créer un commentaire.
-    // Seul un admin peut le modifier ou le supprimer (géré par la règle générale ci-dessus).
+    // La collection des commentaires
+    // Tout le monde peut lire et créer des commentaires.
+    // Seul un admin peut modifier ou supprimer un commentaire.
     match /comments/{commentId} {
-      allow create: if true;
+      allow read, create: if true;
+      allow update, delete: if request.auth != null;
     }
 
-    // N'importe qui peut voter dans un sondage.
-    // L'écriture est permise pour mettre à jour les comptes de votes.
+    // La collection des sondages (polls)
+    // Tout le monde a besoin d'un accès en écriture pour pouvoir voter.
+    // La logique de l'application doit empêcher les abus (ex: voter une seule fois).
     match /polls/{pollId} {
-      allow write: if true;
+       allow read, write: if true;
     }
   }
 }
