@@ -423,24 +423,25 @@ export async function getPublicNavetaneStatsData(): Promise<NavetaneStats> {
 
 export async function getNavetaneStatsPageData(): Promise<NavetaneStatsPublicView> {
     try {
-        const [statsDocSnap, navetaneViewDocSnap] = await Promise.all([
-            getDoc(navetaneStatsPublicViewDoc),
-            getDoc(navetanePublicViewDoc)
-        ]);
-
+        // First, try to get the public view. This is the fastest and most efficient way.
+        const publicStatsSnap = await getDoc(navetaneStatsPublicViewDoc);
+        
         let stats: NavetaneStats = defaultStats;
-        if (statsDocSnap.exists()) {
-            const data = statsDocSnap.data() as NavetaneStats;
-            stats = {
-                ballonDor: data.ballonDor || [],
-                goldenBoy: data.goldenBoy || [],
-                topScorersChampionnat: data.topScorersChampionnat || [],
-                topScorersCoupe: data.topScorersCoupe || [],
-                lastResults: data.lastResults || [],
-                upcomingMatches: data.upcomingMatches || [],
-            };
-        }
 
+        // If the public view exists, use it.
+        if (publicStatsSnap.exists()) {
+            stats = publicStatsSnap.data() as NavetaneStats;
+        } else {
+            // As a fallback (especially during build time on Vercel), read the admin data.
+            // This ensures the page is never empty if the publish function hasn't run yet.
+            const adminStatsSnap = await getDoc(navetaneStatsAdminDoc);
+            if (adminStatsSnap.exists()) {
+                stats = adminStatsSnap.data() as NavetaneStats;
+            }
+        }
+        
+        // Fetch preliminary match data separately
+        const navetaneViewDocSnap = await getDoc(navetanePublicViewDoc);
         let preliminaryMatch: NavetanePreliminaryMatch | null = null;
         if (navetaneViewDocSnap.exists()) {
             const data = navetaneViewDocSnap.data();
@@ -448,7 +449,12 @@ export async function getNavetaneStatsPageData(): Promise<NavetaneStatsPublicVie
         }
         
         return {
-            ...stats,
+            ballonDor: stats.ballonDor || [],
+            goldenBoy: stats.goldenBoy || [],
+            topScorersChampionnat: stats.topScorersChampionnat || [],
+            topScorersCoupe: stats.topScorersCoupe || [],
+            lastResults: stats.lastResults || [],
+            upcomingMatches: stats.upcomingMatches || [],
             preliminaryMatch,
         };
 
