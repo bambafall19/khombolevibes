@@ -7,24 +7,6 @@ import { getCategories, getTeams, getSponsors, getAdminNavetanePoules, getAdminN
 import type { Article, Category, Media, NavetanePoule, NavetaneCoupeMatch, Team, NavetanePreliminaryMatch, Comment, NavetanePublicView, NavetaneStats, PlayerRank, Match, TeamData, Sponsor, SponsorPublicView, NavetaneStatsPublicView, CompetitionFinals, FinalsBracket, BracketMatch, Poll, PollOption, NavetaneTeam } from '@/types';
 import { nanoid } from 'nanoid';
 
-// This action runs on the server and can safely access the database.
-export async function getHomePageData() {
-  const [articles, navetaneData, statsData, sponsorsData] = await Promise.all([
-    getArticles(),
-    getNavetanePageData(),
-    getNavetaneStatsPageData(),
-    getPublicSponsors(),
-  ]);
-
-  return {
-    articles,
-    navetaneData,
-    statsData,
-    sponsors: sponsorsData.sponsors,
-  };
-}
-
-
 export async function voteOnPoll(pollId: string, optionId: string): Promise<Poll> {
   if (!pollId || !optionId) {
     throw new Error('Poll ID and Option ID are required.');

@@ -1,5 +1,5 @@
 // src/app/page.tsx
-import { getHomePageData } from '@/lib/actions';
+import { getHomePageData } from '@/lib/server-data';
 import HomePageClient from '@/components/HomePageClient';
 
 // Add this to revalidate the page every 60 seconds
