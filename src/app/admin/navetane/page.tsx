@@ -149,8 +149,8 @@ export default function ManageNavetanePage() {
 
 
   const fetchData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const [fetchedPoules, fetchedCoupeMatches, fetchedTeams, fetchedPreliminaryMatch] = await Promise.all([
         getAdminNavetanePoules(),
         getAdminNavetaneCoupeMatches(),
@@ -328,7 +328,7 @@ export default function ManageNavetanePage() {
           <h1 className="font-headline text-4xl font-bold text-primary">Gérer les Navétanes</h1>
           <p className="mt-2 text-muted-foreground">Gérez les poules, les équipes et les matchs de la coupe.</p>
         </div>
-         <Button onClick={handlePublish} disabled={isPublishing}>
+         <Button onClick={handlePublish} disabled={isPublishing || loading}>
             {isPublishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
             {isPublishing ? "Publication..." : "Publier les modifications"}
         </Button>

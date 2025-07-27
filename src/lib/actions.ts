@@ -8,9 +8,6 @@ import { getCategories, getTeams, getSponsors, getAdminNavetanePoules, getAdminN
 import type { Article, Category, Media, NavetanePoule, NavetaneCoupeMatch, Team, NavetanePreliminaryMatch, Comment, NavetanePublicView, NavetaneStats, PlayerRank, Match, TeamData, Sponsor, SponsorPublicView, NavetaneStatsPublicView, CompetitionFinals, FinalsBracket, BracketMatch, Poll, PollOption, NavetaneTeam } from '@/types';
 import { nanoid } from 'nanoid';
 
-let categoriesCache: Category[] | null = null;
-let teamsCache: Team[] | null = null;
-
 // This action runs on the server and can safely access the database.
 export async function getHomePageData() {
   const [articles, navetaneData, statsData, sponsorsData] = await Promise.all([
@@ -79,21 +76,18 @@ export async function voteOnPoll(pollId: string, optionId: string): Promise<Poll
 
 // --- Category Management Actions ---
 export async function addCategory(category: Omit<Category, 'id'>) {
-    categoriesCache = null; // Invalidate cache
     const docRef = await addDoc(collection(db, 'categories'), category);
     revalidateTag('categories');
     return docRef;
 }
 
 export async function updateCategory(id: string, category: Partial<Category>) {
-    categoriesCache = null; // Invalidate cache
     const categoryRef = doc(db, 'categories', id);
     await updateDoc(categoryRef, category);
     revalidateTag('categories');
 }
 
 export async function deleteCategory(id: string) {
-    categoriesCache = null; // Invalidate cache
     const categoryRef = doc(db, 'categories', id);
     await deleteDoc(categoryRef);
     revalidateTag('categories');
@@ -273,18 +267,15 @@ export async function addComment(commentData: { articleId: string; name: string;
 
 // --- Team Management Actions ---
 export async function addTeam(team: Omit<Team, 'id'>) {
-    teamsCache = null;
     return await addDoc(collection(db, 'teams'), team);
 }
 
 export async function updateTeam(id: string, team: Partial<Team>) {
-    teamsCache = null;
     const teamRef = doc(db, 'teams', id);
     return await updateDoc(teamRef, team);
 }
 
 export async function deleteTeam(id: string) {
-    teamsCache = null;
     const teamRef = doc(db, 'teams', id);
     return await deleteDoc(teamRef);
 }
@@ -438,14 +429,16 @@ export async function addNavetanePoule(poule: Omit<NavetanePoule, 'id' | 'teams'
 
 export async function updateNavetanePoule(id: string, poule: Partial<Omit<NavetanePoule, 'id'>>) {
     const pouleRef = doc(db, 'navetane_poules', id);
+    // This is the critical fix: create a clean object with only the fields
+    // that should be updated in the 'poule' document itself.
     const dataToUpdate: { name?: string; teams?: NavetaneTeam[] } = {};
 
     if (poule.name) {
         dataToUpdate.name = poule.name;
     }
+    // Only update teams if the field is provided.
+    // This ensures we are not sending undefined fields to Firestore.
     if (poule.teams) {
-        // Ensure we are not sending undefined or extra fields to Firestore.
-        // This was the source of the permission error.
         dataToUpdate.teams = poule.teams.map(({ id, team, logoUrl, pts, j, g, n, p, db }) => ({
              id,
              team,

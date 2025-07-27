@@ -57,12 +57,12 @@ function ArticleForm({ article, categories, onSave, onOpenChange, isOpen, childr
         imageHint: '',
         imageUrl2: '',
         imageHint2: '',
-        categoryId: availableCategories.length > 0 ? availableCategories[0].id : '',
+        categoryId: '',
         isFeatured: false,
     }
   });
   
-  const { register, handleSubmit, formState: { errors }, setValue, watch, control, reset } = form;
+  const { register, handleSubmit, formState: { errors }, setValue, control, reset } = form;
 
   useEffect(() => {
     if (isOpen) {
