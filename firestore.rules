@@ -3,41 +3,37 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Default-deny all reads and writes
-    match /{document=**} {
-      allow read, write: if false;
-    }
+    // Règle de base : lecture publique, écriture pour les admins.
+    match /articles/{articleId} { allow read: if true; allow write: if request.auth != null; }
+    match /categories/{categoryId} { allow read: if true; allow write: if request.auth != null; }
+    match /media/{mediaId} { allow read: if true; allow write: if request.auth != null; }
+    match /teams/{teamId} { allow read: if true; allow write: if request.auth != null; }
+    match /sponsors/{sponsorId} { allow read: if true; allow write: if request.auth != null; }
+    match /navetane_poules/{pouleId} { allow read: if true; allow write: if request.auth != null; }
+    match /navetane_coupe_matches/{matchId} { allow read: if true; allow write: if request.auth != null; }
+    match /navetane_preliminary_match/{docId} { allow read: if true; allow write: if request.auth != null; }
+    match /navetane_stats/{docId} { allow read: if true; allow write: if request.auth != null; }
+    match /finals_admin_data/{docId} { allow read: if true; allow write: if request.auth != null; }
+    
+    // Vues publiques (générées par l'admin)
+    match /sponsors_public_view/{docId} { allow read: if true; allow write: if request.auth != null; }
+    match /navetane_public_views/{docId} { allow read: if true; allow write: if request.auth != null; }
+    match /finals_public_view/{docId} { allow read: if true; allow write: if request.auth != null; }
 
-    // Publicly readable collections
-    match /articles/{articleId} { allow read: if true; }
-    match /categories/{categoryId} { allow read: if true; }
-    match /media/{mediaId} { allow read: if true; }
-    match /teams/{teamId} { allow read: if true; }
-    match /sponsors_public_view/{docId} { allow read: if true; }
-    match /navetane_public_views/{docId} { allow read: if true; }
-    match /finals_public_view/{docId} { allow read: if true; }
-    match /navetane_stats/public_view { allow read: if true; }
-    
-    // Comments can be read and created by anyone
-    match /comments/{commentId} {
-      allow read, create: if true;
-    }
-    
-    // Polls can be read and written to by anyone (to vote)
+    // --- RÈGLES SPÉCIALES ---
+
+    // La collection des sondages (polls)
     match /polls/{pollId} {
+      // Tout le monde peut lire ET écrire pour pouvoir voter.
       allow read, write: if true;
     }
 
-    // Admin-only write access
-    // This single rule covers all collections that should be admin-writable
-    match /{collectionId}/{docId} {
-      allow write: if request.auth != null;
-    }
-    
-    // Specific admin-only write rules if needed, but the above is generally sufficient.
-    // For example, if you wanted to lock down comments deletion to admins only:
+    // La collection des commentaires
     match /comments/{commentId} {
-       allow update, delete: if request.auth != null;
+      // Tout le monde peut lire et créer des commentaires.
+      allow read, create: if true;
+      // Seuls les admins peuvent modifier ou supprimer.
+      allow update, delete: if request.auth != null;
     }
   }
 }
