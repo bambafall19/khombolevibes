@@ -20,6 +20,8 @@ import { Badge } from '@/components/ui/badge';
 import { getPolls, getArticles } from '@/lib/data';
 import { addPoll, updatePoll, deletePoll } from '@/lib/actions';
 import type { Poll, Article, PollOption } from '@/types';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 
 // Schema for validation
 const pollOptionSchema = z.object({
@@ -103,14 +105,36 @@ function PollForm({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{poll ? 'Modifier le sondage' : 'Ajouter un sondage'}</DialogTitle>
           <DialogDescription>
-            {poll ? 'Modifiez les détails du sondage.' : 'Créez un nouveau sondage et liez-le à un article.'}
+            {poll ? 'Modifiez les détails du sondage et consultez les résultats.' : 'Créez un nouveau sondage et liez-le à un article.'}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto pr-4">
+          {poll && poll.totalVotes > 0 && (
+            <div className="space-y-4 rounded-lg border bg-muted/50 p-4">
+                <h4 className="font-semibold">Résultats actuels ({poll.totalVotes} votes)</h4>
+                <div className="space-y-3">
+                    {poll.options.map(option => {
+                        const percentage = poll.totalVotes > 0 ? (option.votes / poll.totalVotes) * 100 : 0;
+                        return (
+                            <div key={option.id}>
+                                <div className="flex justify-between items-center text-sm mb-1">
+                                    <span className="font-medium">{option.text}</span>
+                                    <span className="text-muted-foreground">{option.votes} vote(s) ({percentage.toFixed(1)}%)</span>
+                                </div>
+                                <Progress value={percentage} />
+                            </div>
+                        )
+                    })}
+                </div>
+            </div>
+          )}
+
+          <Separator />
+
           <div>
             <Label htmlFor="question">Question du sondage</Label>
             <Input id="question" {...register('question')} />
@@ -149,11 +173,12 @@ function PollForm({
               </div>
             ))}
             {errors.options && <p className="text-destructive text-sm">{errors.options.message}</p>}
+             {errors.options?.root && <p className="text-destructive text-sm">{errors.options.root.message}</p>}
             <Button type="button" variant="outline" size="sm" onClick={() => append({ text: '' })}>
               <PlusCircle className="mr-2 h-4 w-4" /> Ajouter une option
             </Button>
           </div>
-          <DialogFooter>
+          <DialogFooter className="sticky bottom-0 bg-background pt-4">
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Sauvegarder
