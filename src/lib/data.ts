@@ -357,7 +357,17 @@ export async function getPollForArticle(articleId: string): Promise<Poll | null>
 
     } catch (error) {
         console.error("Error fetching poll for article:", error);
-        return null;
+         try {
+            // Fallback for build time issues
+            console.log("Retrying poll fetch for article:", articleId);
+            const snapshot = await getDocs(q);
+            if (snapshot.empty) return null;
+            const pollDoc = snapshot.docs[0];
+            return { id: pollDoc.id, ...pollDoc.data() } as Poll;
+        } catch (retryError) {
+            console.error("Retry poll fetch failed:", retryError);
+            return null;
+        }
     }
 }
 

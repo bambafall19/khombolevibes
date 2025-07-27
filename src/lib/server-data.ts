@@ -5,7 +5,7 @@ import { getArticles, getNavetanePageData, getNavetaneStatsPageData, getPublicSp
 
 // This action runs on the server and can safely access the database.
 export async function getHomePageData() {
-  const [articles, navetaneData, statsData, sponsorsData] = await Promise.all([
+  const [articles, {navetaneData}, statsData, sponsorsData] = await Promise.all([
     getArticles(),
     getNavetanePageData(),
     getNavetaneStatsPageData(),

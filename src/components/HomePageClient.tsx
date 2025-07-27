@@ -7,7 +7,7 @@ import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Article, NavetanePoule, NavetaneStats, Sponsor } from '@/types';
+import type { Article, NavetanePoule, NavetaneStats, Sponsor, NavetanePublicView } from '@/types';
 import ArticleCard from './ArticleCard';
 import { Star } from 'lucide-react';
 import Logo from './Logo';
@@ -20,9 +20,7 @@ import { Button } from './ui/button';
 
 type HomePageClientProps = {
   articles: Article[];
-  navetaneData: {
-    poules: NavetanePoule[];
-  };
+  navetaneData: NavetanePublicView;
   statsData: NavetaneStats | null;
   sponsors: Sponsor[];
 };
