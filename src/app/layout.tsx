@@ -12,7 +12,7 @@ import ClientToaster from '@/components/ClientToaster';
 import BottomNavBar from '@/components/BottomNavBar';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Jost, Josefin_Sans } from 'next/font/google';
-import GoogleAnalytics from '@/components/GoogleAnalytics';
+import Script from 'next/script';
 
 
 const jost = Jost({
@@ -49,12 +49,26 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const categories = await getCategories();
+  const GA_TRACKING_ID = 'G-JEQX9W6JNW';
 
   return (
     <html lang="fr" suppressHydrationWarning>
-      <head />
+      <head>
+        <Script
+          async
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_TRACKING_ID}');
+          `}
+        </Script>
+      </head>
       <body>
-         <GoogleAnalytics />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
