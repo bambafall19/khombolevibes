@@ -146,6 +146,7 @@ export async function addPoll(pollData: Omit<Poll, 'id' | 'options' | 'totalVote
     batch.update(articleRef, { pollId: pollDocRef.id });
     
     await batch.commit();
+
     return pollDocRef;
 }
 
@@ -155,7 +156,10 @@ export async function updatePoll(id: string, pollData: Omit<Poll, 'id' | 'option
 
     const existingPollSnap = await getDoc(pollRef);
     const existingPoll = existingPollSnap.data();
-    const existingOptionsMap = new Map(existingPoll?.options.map((opt: PollOption) => [opt.text, opt]));
+    if (!existingPoll) {
+        throw new Error("Poll not found for update.");
+    }
+    const existingOptionsMap = new Map(existingPoll.options.map((opt: PollOption) => [opt.text, opt]));
 
      const updatedPoll = {
         articleId: pollData.articleId,
@@ -174,7 +178,7 @@ export async function updatePoll(id: string, pollData: Omit<Poll, 'id' | 'option
 
     batch.update(pollRef, { ...updatedPoll, totalVotes });
      
-    if (existingPoll && existingPoll.articleId !== pollData.articleId) {
+    if (existingPoll.articleId !== pollData.articleId) {
         const oldArticleRef = doc(db, 'articles', existingPoll.articleId);
         batch.update(oldArticleRef, { pollId: null });
 
