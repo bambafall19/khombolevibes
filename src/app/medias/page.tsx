@@ -20,7 +20,7 @@ export default async function MediaPage() {
       <header className="text-center mb-12">
         <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary">Galerie Média</h1>
         <p className="mt-4 text-lg max-w-2xl mx-auto text-muted-foreground">
-          Plongez au cœur de Khombole avec notre collection de photos.
+          Ici on peut voir les photos.
         </p>
       </header>
       
