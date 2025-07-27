@@ -436,10 +436,9 @@ export async function updateNavetanePoule(id: string, pouleData: Partial<Omit<Na
         dataToUpdate.name = pouleData.name;
     }
     
-    // This is the critical fix. We ensure every field has a default value and is not undefined.
     if ('teams' in pouleData) {
         dataToUpdate.teams = (pouleData.teams || []).map(team => ({
-             id: team.id || nanoid(), 
+             id: team.id || '', 
              team: team.team || '', 
              logoUrl: team.logoUrl || '',
              pts: team.pts ?? 0, 

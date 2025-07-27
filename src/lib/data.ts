@@ -408,7 +408,7 @@ export async function getPublicNavetaneStatsData(): Promise<NavetaneStats> {
     try {
         const docSnap = await getDoc(navetaneStatsAdminDoc);
         if (docSnap.exists()) {
-            const data = docSnap.data() as NavetaneStats;
+            const data = docSnap.data();
             return {
                 ballonDor: data.ballonDor || [],
                 goldenBoy: data.goldenBoy || [],

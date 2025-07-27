@@ -124,11 +124,11 @@ function TeamForm({ open, onOpenChange, onSave, poule, team, teams }: { open: bo
         if (open) {
             form.reset({
                 teamId: team?.id || '',
-                pts: team?.pts || 0,
-                j: team?.j || 0,
-                g: team?.g || 0,
-                n: team?.n || 0,
-                p: team?.p || 0,
+                pts: team?.pts ?? 0,
+                j: team?.j ?? 0,
+                g: team?.g ?? 0,
+                n: team?.n ?? 0,
+                p: team?.p ?? 0,
                 db: team?.db || '0',
             });
         }
