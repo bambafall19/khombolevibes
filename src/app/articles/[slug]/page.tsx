@@ -228,9 +228,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           )}
 
           <article className="prose prose-lg max-w-none text-foreground prose-a:text-primary hover:prose-a:text-primary/80 prose-strong:font-semibold">
-            {article.content.split('\n\n').map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
-            ))}
+             <div className="whitespace-pre-wrap">{article.content}</div>
           </article>
 
           {poll && (

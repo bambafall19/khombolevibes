@@ -25,6 +25,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
+import { FormDescription } from '@/components/ui/form';
 
 const articleSchema = z.object({
   title: z.string().min(5, { message: 'Le titre doit contenir au moins 5 caractères.' }),
@@ -165,6 +166,7 @@ function ArticleForm({ article, categories, onSave, onOpenChange, isOpen, childr
           <div className="grid gap-2">
             <Label htmlFor="content">Contenu de l'article</Label>
             <Textarea id="content" {...register('content')} className="min-h-[200px]" />
+            <p className="text-xs text-muted-foreground">Les sauts de ligne seront conservés lors de la publication.</p>
             {errors.content && <p className="text-sm text-destructive">{errors.content.message}</p>}
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
