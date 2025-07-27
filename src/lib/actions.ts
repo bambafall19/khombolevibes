@@ -430,27 +430,23 @@ export async function addNavetanePoule(poule: Omit<NavetanePoule, 'id' | 'teams'
 
 export async function updateNavetanePoule(id: string, pouleData: Partial<Omit<NavetanePoule, 'id'>>) {
     const pouleRef = doc(db, 'navetane_poules', id);
-
     const dataToUpdate: { [key: string]: any } = {};
 
-    if (pouleData.name) {
+    if ('name' in pouleData) {
         dataToUpdate.name = pouleData.name;
     }
     
-    if (pouleData.teams) {
-        dataToUpdate.teams = pouleData.teams.map(({ id, team, logoUrl, pts, j, g, n, p, db }) => ({
+    if ('teams' in pouleData) {
+        dataToUpdate.teams = (pouleData.teams || []).map(({ id, team, logoUrl, pts, j, g, n, p, db }) => ({
              id, team, logoUrl: logoUrl || '',
              pts: pts || 0, j: j || 0, g: g || 0,
              n: n || 0, p: p || 0, db: db || '0'
         }));
     }
     
-    if (Object.keys(dataToUpdate).length === 0) {
-        console.warn("Update called with no data to update for poule:", id);
-        return;
+    if (Object.keys(dataToUpdate).length > 0) {
+        return await updateDoc(pouleRef, dataToUpdate);
     }
-
-    return await updateDoc(pouleRef, dataToUpdate);
 }
 
 export async function deleteNavetanePoule(id: string) {

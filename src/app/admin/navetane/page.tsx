@@ -21,8 +21,6 @@ import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Form } from '@/components/ui/form';
-
 
 // Schemas for validation
 const pouleSchema = z.object({
@@ -37,11 +35,12 @@ const coupeMatchSchema = z.object({
 type CoupeMatchFormData = z.infer<typeof coupeMatchSchema>;
 
 const preliminaryMatchSchema = z.object({
-  teamA: z.string().min(1, "Le nom de l'équipe A est requis.").optional().or(z.literal('')),
-  teamB: z.string().min(1, "Le nom de l'équipe B est requis.").optional().or(z.literal('')),
-  winnerPlaysAgainst: z.string().min(1, "L'adversaire du vainqueur est requis.").optional().or(z.literal('')),
+  teamA: z.string().optional().or(z.literal('')),
+  teamB: z.string().optional().or(z.literal('')),
+  winnerPlaysAgainst: z.string().optional().or(z.literal('')),
 });
 type PreliminaryMatchFormData = z.infer<typeof preliminaryMatchSchema>;
+
 
 const teamSchema = z.object({
   teamId: z.string().min(1, "Veuillez sélectionner une équipe."),
@@ -219,6 +218,130 @@ function TeamForm({ open, onOpenChange, onSave, poule, team, teams }: { open: bo
     );
 }
 
+function CoupeMatchForm({ open, onOpenChange, onSave, match, teams }: { open: boolean, onOpenChange: (open: boolean) => void, onSave: () => void, match?: NavetaneCoupeMatch | null, teams: Team[] }) {
+    const { toast } = useToast();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [teamA, setTeamA] = useState('');
+    const [teamB, setTeamB] = useState('');
+
+    useEffect(() => {
+        if (open) {
+            setTeamA(match?.teamA || '');
+            setTeamB(match?.teamB || '');
+        }
+    }, [open, match]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        try {
+            const data = { teamA, teamB };
+            if (match) {
+                await updateNavetaneCoupeMatch(match.id, data);
+                toast({ title: "Match modifié" });
+            } else {
+                await addNavetaneCoupeMatch(data);
+                toast({ title: "Match ajouté" });
+            }
+            onSave();
+            onOpenChange(false);
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de sauvegarder le match.' });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader><DialogTitle>{match ? 'Modifier le match' : 'Ajouter un match'}</DialogTitle></DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <Label>Équipe A</Label>
+                        <Select value={teamA} onValueChange={setTeamA}>
+                            <SelectTrigger><SelectValue placeholder="Équipe A" /></SelectTrigger>
+                            <SelectContent>{teams.map(t => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                    <div>
+                        <Label>Équipe B</Label>
+                        <Select value={teamB} onValueChange={setTeamB}>
+                            <SelectTrigger><SelectValue placeholder="Équipe B" /></SelectTrigger>
+                            <SelectContent>{teams.map(t => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                    <DialogFooter><Button type="submit" disabled={isSubmitting}>{isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Sauvegarder</Button></DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function PreliminaryMatchForm({ open, onOpenChange, onSave, match, teams }: { open: boolean, onOpenChange: (open: boolean) => void, onSave: () => void, match?: NavetanePreliminaryMatch | null, teams: Team[] }) {
+    const { toast } = useToast();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [teamA, setTeamA] = useState('');
+    const [teamB, setTeamB] = useState('');
+    const [winnerPlaysAgainst, setWinnerPlaysAgainst] = useState('');
+
+    useEffect(() => {
+        if (open) {
+            setTeamA(match?.teamA || '');
+            setTeamB(match?.teamB || '');
+            setWinnerPlaysAgainst(match?.winnerPlaysAgainst || '');
+        }
+    }, [open, match]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        try {
+            await updatePreliminaryMatch({ teamA, teamB, winnerPlaysAgainst });
+            toast({ title: "Match préliminaire mis à jour" });
+            onSave();
+            onOpenChange(false);
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de sauvegarder le match préliminaire.' });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+    
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader><DialogTitle>Modifier le Match Préliminaire</DialogTitle></DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <Label>Équipe A</Label>
+                        <Select value={teamA} onValueChange={setTeamA}>
+                            <SelectTrigger><SelectValue placeholder="Équipe A" /></SelectTrigger>
+                            <SelectContent>{teams.map(t => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                    <div>
+                        <Label>Équipe B</Label>
+                        <Select value={teamB} onValueChange={setTeamB}>
+                            <SelectTrigger><SelectValue placeholder="Équipe B" /></SelectTrigger>
+                            <SelectContent>{teams.map(t => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                    <div>
+                        <Label>Le Vainqueur Joue Contre</Label>
+                        <Select value={winnerPlaysAgainst} onValueChange={setWinnerPlaysAgainst}>
+                            <SelectTrigger><SelectValue placeholder="Adversaire" /></SelectTrigger>
+                            <SelectContent>{teams.map(t => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                    <DialogFooter><Button type="submit" disabled={isSubmitting}>{isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Sauvegarder</Button></DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+
 export default function ManageNavetanePage() {
   const [poules, setPoules] = useState<NavetanePoule[]>([]);
   const [coupeMatches, setCoupeMatches] = useState<NavetaneCoupeMatch[]>([]);
@@ -257,7 +380,7 @@ export default function ManageNavetanePage() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [toast]);
 
   const handleDeletePoule = async (pouleId: string) => {
     await deleteNavetanePoule(pouleId);
@@ -272,40 +395,12 @@ export default function ManageNavetanePage() {
     fetchData();
   };
 
-  const handleCoupeMatchSubmit = async (values: CoupeMatchFormData) => {
-    const { data: match } = coupeMatchForm;
-    try {
-        if (match) {
-            await updateNavetaneCoupeMatch(match.id, values);
-            toast({ title: "Match modifié" });
-        } else {
-            await addNavetaneCoupeMatch(values);
-            toast({ title: "Match ajouté" });
-        }
-        fetchData();
-        setCoupeMatchForm({ open: false });
-    } catch(e) {
-        toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de sauvegarder le match.' });
-    }
-  };
-
   const handleDeleteCoupeMatch = async (matchId: string) => {
     await deleteNavetaneCoupeMatch(matchId);
     toast({ title: "Match supprimé" });
     fetchData();
   };
   
-   const handlePreliminaryMatchSubmit = async (values: PreliminaryMatchFormData) => {
-    try {
-        await updatePreliminaryMatch(values);
-        toast({ title: "Match préliminaire mis à jour" });
-        fetchData();
-        setPreliminaryMatchForm({ open: false });
-    } catch(e) {
-        toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de sauvegarder le match préliminaire.' });
-    }
-  };
-
   const handlePublish = () => {
     startPublishTransition(async () => {
       try {
@@ -317,13 +412,6 @@ export default function ManageNavetanePage() {
       }
     });
   };
-
-  const teamSelect = (field: any, placeholder: string) => (
-    <Select onValueChange={field.onChange} value={field.value || ''}>
-        <SelectTrigger><SelectValue placeholder={placeholder} /></SelectTrigger>
-        <SelectContent>{teams.map(t => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}</SelectContent>
-    </Select>
-  );
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -395,7 +483,7 @@ export default function ManageNavetanePage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {poule.teams?.sort((a,b) => b.pts - a.pts).map((team) => (
+                        {(poule.teams || []).sort((a,b) => b.pts - a.pts).map((team) => (
                           <TableRow key={team.id}>
                             <TableCell className="flex items-center gap-2 font-medium">
                               {team.logoUrl && <Image src={team.logoUrl} alt={`Logo ${team.team}`} width={24} height={24} className="rounded-full object-cover" />}
@@ -500,34 +588,20 @@ export default function ManageNavetanePage() {
         team={teamForm.team}
         teams={teams}
       />
-
-       <Dialog open={preliminaryMatchForm.open} onOpenChange={(open) => setPreliminaryMatchForm({ open })}>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Modifier le Match Préliminaire</DialogTitle></DialogHeader>
-             <Form {...useForm<PreliminaryMatchFormData>({ resolver: zodResolver(preliminaryMatchSchema), defaultValues: { teamA: preliminaryMatch?.teamA || '', teamB: preliminaryMatch?.teamB || '', winnerPlaysAgainst: preliminaryMatch?.winnerPlaysAgainst || '' } })}>
-                <form onSubmit={useForm<PreliminaryMatchFormData>().handleSubmit(handlePreliminaryMatchSubmit)} className="space-y-4">
-                  <Controller control={useForm<PreliminaryMatchFormData>().control} name="teamA" render={({ field }) => ( <div><Label>Équipe A</Label>{teamSelect(field, "Équipe A")}</div> )} />
-                  <Controller control={useForm<PreliminaryMatchFormData>().control} name="teamB" render={({ field }) => ( <div><Label>Équipe B</Label>{teamSelect(field, "Équipe B")}</div> )} />
-                  <Controller control={useForm<PreliminaryMatchFormData>().control} name="winnerPlaysAgainst" render={({ field }) => ( <div><Label>Le Vainqueur Joue Contre</Label>{teamSelect(field, "Adversaire")}</div> )} />
-                  <DialogFooter><Button type="submit">Sauvegarder</Button></DialogFooter>
-                </form>
-             </Form>
-          </DialogContent>
-      </Dialog>
-      
-      <Dialog open={coupeMatchForm.open} onOpenChange={(open) => setCoupeMatchForm({ open })}>
-          <DialogContent>
-            <DialogHeader><DialogTitle>{coupeMatchForm.data ? 'Modifier le match' : 'Ajouter un match'}</DialogTitle></DialogHeader>
-            <Form {...useForm<CoupeMatchFormData>({ resolver: zodResolver(coupeMatchSchema), defaultValues: { teamA: coupeMatchForm.data?.teamA || '', teamB: coupeMatchForm.data?.teamB || '' } })}>
-                <form onSubmit={useForm<CoupeMatchFormData>().handleSubmit(handleCoupeMatchSubmit)} className="space-y-4">
-                  <Controller control={useForm<CoupeMatchFormData>().control} name="teamA" render={({ field }) => ( <div><Label>Équipe A</Label>{teamSelect(field, "Équipe A")}</div> )} />
-                  <Controller control={useForm<CoupeMatchFormData>().control} name="teamB" render={({ field }) => ( <div><Label>Équipe B</Label>{teamSelect(field, "Équipe B")}</div> )} />
-                  <DialogFooter><Button type="submit">Sauvegarder</Button></DialogFooter>
-                </form>
-            </Form>
-          </DialogContent>
-      </Dialog>
-
+      <PreliminaryMatchForm
+        open={preliminaryMatchForm.open}
+        onOpenChange={(open) => setPreliminaryMatchForm({ open, data: preliminaryMatch })}
+        onSave={fetchData}
+        match={preliminaryMatch}
+        teams={teams}
+      />
+      <CoupeMatchForm
+        open={coupeMatchForm.open}
+        onOpenChange={(open) => setCoupeMatchForm({ open })}
+        onSave={fetchData}
+        match={coupeMatchForm.data}
+        teams={teams}
+      />
     </div>
   );
 }
