@@ -55,11 +55,13 @@ export type NavetaneTeam = {
     team: string;
     logoUrl?: string;
     pts: number;
-    j: number;
+    mj: number;
     g: number;
     n: number;
     p: number;
-    db: string;
+    bp: number;
+    bc: number;
+    diff: number;
 }
 
 export type NavetanePoule = {

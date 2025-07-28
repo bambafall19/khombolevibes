@@ -29,13 +29,15 @@ const StandingTable = ({poule}: {poule: NavetanePoule}) => {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[40%]">Équipe</TableHead>
+                            <TableHead className="w-[30%]">Équipe</TableHead>
                             <TableHead className="text-center">Pts</TableHead>
-                            <TableHead className="text-center">J</TableHead>
+                            <TableHead className="text-center">MJ</TableHead>
                             <TableHead className="text-center">G</TableHead>
                             <TableHead className="text-center">N</TableHead>
                             <TableHead className="text-center">P</TableHead>
-                            <TableHead className="text-center">DB</TableHead>
+                            <TableHead className="text-center">BP</TableHead>
+                            <TableHead className="text-center">BC</TableHead>
+                            <TableHead className="text-center">Diff</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -48,11 +50,13 @@ const StandingTable = ({poule}: {poule: NavetanePoule}) => {
                                         <span>{row.team}</span>
                                     </TableCell>
                                     <TableCell className={cn("font-bold text-center", isQualified && "text-primary")}>{row.pts}</TableCell>
-                                    <TableCell className="text-center">{row.j}</TableCell>
+                                    <TableCell className="text-center">{row.mj}</TableCell>
                                     <TableCell className="text-center">{row.g}</TableCell>
                                     <TableCell className="text-center">{row.n}</TableCell>
                                     <TableCell className="text-center">{row.p}</TableCell>
-                                    <TableCell className="text-center">{row.db}</TableCell>
+                                    <TableCell className="text-center">{row.bp}</TableCell>
+                                    <TableCell className="text-center">{row.bc}</TableCell>
+                                    <TableCell className="text-center">{row.diff}</TableCell>
                                 </TableRow>
                             )
                         })}

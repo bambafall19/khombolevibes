@@ -45,11 +45,13 @@ type PreliminaryMatchFormData = z.infer<typeof preliminaryMatchSchema>;
 const teamSchema = z.object({
   teamId: z.string().min(1, "Veuillez sélectionner une équipe."),
   pts: z.coerce.number().int().default(0),
-  j: z.coerce.number().int().default(0),
+  mj: z.coerce.number().int().default(0),
   g: z.coerce.number().int().default(0),
   n: z.coerce.number().int().default(0),
   p: z.coerce.number().int().default(0),
-  db: z.string().default('0'),
+  bp: z.coerce.number().int().default(0),
+  bc: z.coerce.number().int().default(0),
+  diff: z.coerce.number().int().default(0),
 });
 type TeamFormData = z.infer<typeof teamSchema>;
 
@@ -117,7 +119,7 @@ function TeamForm({ open, onOpenChange, onSave, poule, team, teams }: { open: bo
     const [isSubmitting, setIsSubmitting] = useState(false);
     const form = useForm<TeamFormData>({
         resolver: zodResolver(teamSchema),
-        defaultValues: { teamId: '', pts: 0, j: 0, g: 0, n: 0, p: 0, db: '0' },
+        defaultValues: { teamId: '', pts: 0, mj: 0, g: 0, n: 0, p: 0, bp: 0, bc: 0, diff: 0 },
     });
 
     useEffect(() => {
@@ -125,14 +127,28 @@ function TeamForm({ open, onOpenChange, onSave, poule, team, teams }: { open: bo
             form.reset({
                 teamId: team?.id || '',
                 pts: team?.pts ?? 0,
-                j: team?.j ?? 0,
+                mj: team?.mj ?? 0,
                 g: team?.g ?? 0,
                 n: team?.n ?? 0,
                 p: team?.p ?? 0,
-                db: team?.db || '0',
+                bp: team?.bp ?? 0,
+                bc: team?.bc ?? 0,
+                diff: team?.diff ?? 0,
             });
         }
     }, [open, team, form]);
+    
+    useEffect(() => {
+        const subscription = form.watch((value, { name }) => {
+            if (name === 'bp' || name === 'bc') {
+                const bp = form.getValues('bp') || 0;
+                const bc = form.getValues('bc') || 0;
+                form.setValue('diff', bp - bc);
+            }
+        });
+        return () => subscription.unsubscribe();
+    }, [form]);
+
 
     const handleTeamSubmit = async (values: TeamFormData) => {
         if (!poule) return;
@@ -197,13 +213,15 @@ function TeamForm({ open, onOpenChange, onSave, poule, team, teams }: { open: bo
                         />
                         {form.formState.errors.teamId && <p className="text-destructive text-sm">{form.formState.errors.teamId.message}</p>}
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-4 gap-2">
                         <div><Label>Pts</Label><Input type="number" {...form.register('pts')} /></div>
-                        <div><Label>J</Label><Input type="number" {...form.register('j')} /></div>
+                        <div><Label>MJ</Label><Input type="number" {...form.register('mj')} /></div>
                         <div><Label>G</Label><Input type="number" {...form.register('g')} /></div>
                         <div><Label>N</Label><Input type="number" {...form.register('n')} /></div>
                         <div><Label>P</Label><Input type="number" {...form.register('p')} /></div>
-                        <div><Label>DB</Label><Input {...form.register('db')} /></div>
+                        <div><Label>BP</Label><Input type="number" {...form.register('bp')} /></div>
+                        <div><Label>BC</Label><Input type="number" {...form.register('bc')} /></div>
+                        <div><Label>Diff</Label><Input type="number" {...form.register('diff')} readOnly /></div>
                     </div>
                      <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
@@ -473,13 +491,15 @@ export default function ManageNavetanePage() {
                     <Table>
                        <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[40%]">Équipe</TableHead>
+                            <TableHead className="w-[30%]">Équipe</TableHead>
                             <TableHead className="text-center">Pts</TableHead>
-                            <TableHead className="text-center">J</TableHead>
+                            <TableHead className="text-center">MJ</TableHead>
                             <TableHead className="text-center">G</TableHead>
                             <TableHead className="text-center">N</TableHead>
                             <TableHead className="text-center">P</TableHead>
-                            <TableHead className="text-center">DB</TableHead>
+                            <TableHead className="text-center">BP</TableHead>
+                            <TableHead className="text-center">BC</TableHead>
+                            <TableHead className="text-center">Diff</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -491,11 +511,13 @@ export default function ManageNavetanePage() {
                               <span>{team.team}</span>
                             </TableCell>
                             <TableCell className="text-center font-bold">{team.pts}</TableCell>
-                            <TableCell className="text-center">{team.j}</TableCell>
+                            <TableCell className="text-center">{team.mj}</TableCell>
                             <TableCell className="text-center">{team.g}</TableCell>
                             <TableCell className="text-center">{team.n}</TableCell>
                             <TableCell className="text-center">{team.p}</TableCell>
-                            <TableCell className="text-center">{team.db}</TableCell>
+                            <TableCell className="text-center">{team.bp}</TableCell>
+                            <TableCell className="text-center">{team.bc}</TableCell>
+                            <TableCell className="text-center">{team.diff}</TableCell>
                             <TableCell className="text-right">
                                <Button variant="ghost" size="icon" onClick={() => setTeamForm({ open: true, poule, team })}><Pencil className="h-4 w-4" /></Button>
                               <AlertDialog>
