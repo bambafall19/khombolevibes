@@ -67,15 +67,28 @@ const StandingTable = ({poule}: {poule: NavetanePoule}) => {
     )
 }
 
-const MatchTeamDisplay = ({ teamData, justify = 'start' }: { teamData?: TeamData, justify?: 'start' | 'end' }) => {
-    if (!teamData || !teamData.name) return <div className="font-medium w-full text-muted-foreground flex-1 text-center">À définir</div>;
+const MatchTeamDisplay = ({ teamData, justify = 'start', direction = 'row', className }: { teamData?: TeamData, justify?: 'start' | 'end' | 'center', direction?: 'row' | 'col', className?: string }) => {
+    if (!teamData || !teamData.name) return <div className={cn("flex flex-col items-center gap-2 font-medium w-full text-muted-foreground", className)}>
+        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center text-2xl">?</div>
+        <span>À définir</span>
+    </div>;
+
+    const directionClasses = {
+        'row': 'flex-row items-center',
+        'col': 'flex-col items-center'
+    };
+
     return (
         <div className={cn(
-            "flex items-center gap-3 font-semibold w-full flex-1",
-            justify === 'end' ? 'justify-end flex-row-reverse' : 'justify-start'
+            "flex gap-3 font-semibold w-full",
+            directionClasses[direction],
+            justify === 'end' ? 'justify-end' : justify === 'start' ? 'justify-start' : 'justify-center',
+            className
         )}>
-            {teamData.logoUrl && <Image src={teamData.logoUrl} alt={`Logo ${teamData.name}`} width={28} height={28} className="rounded-full object-cover" />}
-            <span className="truncate" title={teamData.name}>{teamData.name}</span>
+            <div className="relative w-16 h-16">
+              <Image src={teamData.logoUrl || 'https://placehold.co/100x100.png'} alt={`Logo ${teamData.name}`} fill className="rounded-full object-cover" />
+            </div>
+            <span className="truncate text-center mt-2 text-base" title={teamData.name}>{teamData.name}</span>
         </div>
     );
 }
@@ -181,41 +194,48 @@ export default async function NavetanePage() {
         </TabsContent>
 
         <TabsContent value="coupe-du-maire" className="mt-8">
-            <Card className="max-w-4xl mx-auto shadow-xl">
+             <Card className="shadow-xl bg-card">
                 <CardHeader className="text-center">
                     <div className="mx-auto bg-primary/10 text-primary p-3 rounded-full w-fit mb-4">
                         <Award className="w-8 h-8" />
                     </div>
                     <CardTitle className="font-headline text-3xl">Tirage de la Coupe du Maire</CardTitle>
-                    <CardDescription>Affiches du tournoi.</CardDescription>
+                    <CardDescription>Les affiches du tournoi.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4 p-6">
+                <CardContent className="p-4 md:p-6 space-y-8">
                     {preliminaryMatch && preliminaryMatch.teamAData?.name ? (
-                       <div className="flex flex-col md:flex-row items-center justify-center gap-4 p-4 bg-muted/30 rounded-lg border-2 border-dashed fade-in">
-                            <div className="flex items-center justify-between p-3 bg-card rounded-md shadow-inner min-w-[280px]">
-                                <MatchTeamDisplay teamData={preliminaryMatch.teamAData} justify="start"/>
-                                <span className="mx-4 text-primary font-bold text-lg">VS</span>
-                                <MatchTeamDisplay teamData={preliminaryMatch.teamBData} justify="end"/>
-                            </div>
-                            <Forward className="h-6 w-6 text-muted-foreground rotate-90 md:rotate-0" />
-                            <div className="font-bold text-center flex items-center gap-2">
-                                Vainqueur vs <MatchTeamDisplay teamData={preliminaryMatch.winnerPlaysAgainstData} />
+                       <div className="text-center">
+                            <h3 className="font-headline text-xl text-primary mb-4 uppercase tracking-wider">Match Préliminaire</h3>
+                            <div className="flex flex-col items-center justify-center gap-4 p-4 bg-muted/50 rounded-lg border-2 border-dashed fade-in">
+                                 <div className="flex items-center justify-around w-full">
+                                     <MatchTeamDisplay teamData={preliminaryMatch.teamAData} direction="col"/>
+                                     <span className="mx-4 text-primary font-bold text-4xl">VS</span>
+                                     <MatchTeamDisplay teamData={preliminaryMatch.teamBData} direction="col"/>
+                                 </div>
+                                 <div className="flex items-center gap-4 font-bold text-lg my-2">
+                                    <Forward className="h-6 w-6 text-muted-foreground" />
+                                    <span>Vainqueur Contre</span>
+                                    <Forward className="h-6 w-6 text-muted-foreground" />
+                                 </div>
+                                 <MatchTeamDisplay teamData={preliminaryMatch.winnerPlaysAgainstData} direction="col" className="w-1/2"/>
                             </div>
                        </div>
                     ) : null}
 
                     {coupeMatches && coupeMatches.length > 0 ? (
-                        <div className="space-y-3">
+                        <div className="grid md:grid-cols-2 gap-6">
                             {coupeMatches.map((match, index) => (
-                                <div 
+                                <Card
                                     key={match.id} 
-                                    className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border transition-all hover:border-primary/50 hover:bg-muted/80 hover:shadow-md fade-in"
-                                    style={{ animationDelay: `${index * 50}ms` }}
+                                    className="fade-in transition-all duration-300 hover:shadow-lg hover:border-primary/50"
+                                    style={{ animationDelay: `${index * 100}ms` }}
                                 >
-                                    <MatchTeamDisplay teamData={match.teamAData} justify="start" />
-                                    <span className="mx-4 text-primary font-bold text-2xl">VS</span>
-                                    <MatchTeamDisplay teamData={match.teamBData} justify="end" />
-                                </div>
+                                    <CardContent className="p-4 flex items-center justify-center">
+                                        <MatchTeamDisplay teamData={match.teamAData} direction="col" justify="center" className="flex-1"/>
+                                        <span className="mx-4 text-primary font-bold text-2xl">VS</span>
+                                        <MatchTeamDisplay teamData={match.teamBData} direction="col" justify="center" className="flex-1"/>
+                                    </CardContent>
+                                </Card>
                             ))}
                         </div>
                     ) : (
