@@ -90,6 +90,11 @@ export default function HomePageClient({ articles, navetaneData, statsData, spon
             </header>
 
             <Separator className="my-12" />
+
+             <div className="mb-12 p-4 border-l-4 border-primary bg-primary/10">
+                <h2 className="font-headline text-2xl font-bold mb-2">Suggestions Futures</h2>
+                <p className="text-muted-foreground">des suggestion ici dans future dans la page d'accueil</p>
+            </div>
             
             {loading ? (
                 <div className="space-y-12">
