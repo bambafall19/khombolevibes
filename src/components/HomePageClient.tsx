@@ -62,9 +62,9 @@ export default function HomePageClient({ articles, navetaneData, statsData, spon
   const loading = !articles; // Simple check if initial data is present
 
   return (
-     <div className="bg-card p-4 sm:p-8 lg:p-12 h-full overflow-y-auto">
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-12">
-        <div className="flex-1 min-w-0">
+     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="grid lg:grid-cols-3 gap-12 items-start">
+        <div className="lg:col-span-2">
              <header className="mb-12">
                  <div className="flex flex-col sm:flex-row items-center justify-center text-center sm:text-left gap-6">
                     <Logo className="w-48 h-auto" />
@@ -104,7 +104,7 @@ export default function HomePageClient({ articles, navetaneData, statsData, spon
                                 <Star className="w-6 h-6 mr-3 text-primary" />
                                 Articles phares
                             </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             {featuredArticles.map((article, index) => (
                                 <ArticleCard key={article.id} article={article} isPriority={index === 0} />
                             ))}
@@ -117,7 +117,7 @@ export default function HomePageClient({ articles, navetaneData, statsData, spon
                             Derniers articles
                         </h2>
                         {regularArticles.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {regularArticles.map((article) => (
                                     <ArticleCard key={article.id} article={article} />
                                 ))}
@@ -131,7 +131,7 @@ export default function HomePageClient({ articles, navetaneData, statsData, spon
                 </>
             )}
         </div>
-        <aside className="w-full lg:w-80 xl:w-96 flex-shrink-0 lg:sticky top-8 h-fit space-y-8">
+        <aside className="lg:sticky top-8 space-y-8">
             <SocialLinksWidget />
             <PublicityCard />
             {loading ? (
@@ -164,3 +164,5 @@ export default function HomePageClient({ articles, navetaneData, statsData, spon
     </div>
   );
 }
+
+    

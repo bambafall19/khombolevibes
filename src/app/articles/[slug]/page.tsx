@@ -171,84 +171,79 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   );
 
   return (
-    <div className="flex flex-col lg:flex-row h-full">
-      <div className="flex-1 bg-card p-4 sm:p-8 lg:p-12 overflow-y-auto">
-        <div className="max-w-4xl mx-auto">
-          <header className="mb-8">
-            <Button variant="ghost" asChild className="mb-6 pl-0">
-                <Link href="/">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Retour à l'accueil
-                </Link>
-            </Button>
-            <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold text-foreground leading-tight">
-              {article.title}
-            </h1>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4" />
-                <span>{article.author}</span>
-              </div>
-              <span className="hidden sm:inline">&middot;</span>
-              <div className="flex items-center gap-2">
-                <span>{article.category.name}</span>
-              </div>
-               <span className="hidden sm:inline">&middot;</span>
-              <div className="flex items-center gap-2">
-                <time dateTime={article.publishedAt}>
-                  {format(new Date(article.publishedAt), "d MMMM yyyy", { locale: fr })}
-                </time>
-              </div>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid lg:grid-cols-3 gap-12 items-start">
+            <div className="lg:col-span-2">
+                <header className="mb-8">
+                    <Button variant="ghost" asChild className="mb-6 pl-0">
+                        <Link href="/">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Retour à l'accueil
+                        </Link>
+                    </Button>
+                    <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold text-foreground leading-tight">
+                    {article.title}
+                    </h1>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        <span>{article.author}</span>
+                    </div>
+                    <span className="hidden sm:inline">&middot;</span>
+                    <div className="flex items-center gap-2">
+                        <span>{article.category.name}</span>
+                    </div>
+                    <span className="hidden sm:inline">&middot;</span>
+                    <div className="flex items-center gap-2">
+                        <time dateTime={article.publishedAt}>
+                        {format(new Date(article.publishedAt), "d MMMM yyyy", { locale: fr })}
+                        </time>
+                    </div>
+                    </div>
+                </header>
+
+                <div className="w-full rounded-xl overflow-hidden mb-8 shadow-lg">
+                    <Image
+                    src={article.imageUrl}
+                    alt={`Image for ${article.title}`}
+                    data-ai-hint={article.imageHint}
+                    width={1200}
+                    height={675}
+                    className="object-contain w-full h-auto"
+                    priority
+                    />
+                </div>
+
+                {article.imageUrl2 && (
+                    <div className="w-full rounded-xl overflow-hidden my-8 shadow-lg">
+                        <Image
+                        src={article.imageUrl2}
+                        alt={`Image secondaire pour ${article.title}`}
+                        data-ai-hint={article.imageHint2}
+                        width={1200}
+                        height={675}
+                        className="object-contain w-full h-auto"
+                        />
+                    </div>
+                )}
+
+                <article className="prose prose-lg max-w-none text-foreground prose-a:text-primary hover:prose-a:text-primary/80 prose-strong:font-semibold">
+                    <div className="whitespace-pre-wrap">{article.content}</div>
+                </article>
+
+                {poll && (
+                    <div className="mt-12">
+                    <PollWidget initialPoll={poll} />
+                    </div>
+                )}
             </div>
-          </header>
 
-          <div className="w-full rounded-xl overflow-hidden mb-8 shadow-lg">
-            <Image
-              src={article.imageUrl}
-              alt={`Image for ${article.title}`}
-              data-ai-hint={article.imageHint}
-              width={1200}
-              height={675}
-              className="object-contain w-full h-auto"
-              priority
-            />
-          </div>
-
-          {article.imageUrl2 && (
-             <div className="w-full rounded-xl overflow-hidden my-8 shadow-lg">
-                <Image
-                src={article.imageUrl2}
-                alt={`Image secondaire pour ${article.title}`}
-                data-ai-hint={article.imageHint2}
-                width={1200}
-                height={675}
-                className="object-contain w-full h-auto"
-                />
-            </div>
-          )}
-
-          <article className="prose prose-lg max-w-none text-foreground prose-a:text-primary hover:prose-a:text-primary/80 prose-strong:font-semibold">
-             <div className="whitespace-pre-wrap">{article.content}</div>
-          </article>
-
-          {poll && (
-            <div className="mt-12">
-              <PollWidget initialPoll={poll} />
-            </div>
-          )}
-
-          {/* Mobile Aside Section */}
-          <div className="lg:hidden mt-12 pt-8 border-t">
-              <AsideContent />
-          </div>
-
+            <aside className="lg:sticky top-8 space-y-8">
+               <AsideContent />
+            </aside>
         </div>
-      </div>
-
-      {/* Desktop Aside Section */}
-      <aside className="w-96 hidden lg:block bg-background p-8 border-l border-border overflow-y-auto">
-        <AsideContent />
-      </aside>
     </div>
   );
 }
+
+    

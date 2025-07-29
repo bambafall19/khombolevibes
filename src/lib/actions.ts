@@ -454,3 +454,5 @@ export async function updatePreliminaryMatch(data: Partial<Omit<NavetanePrelimin
 export async function updateAdminFinalsData(data: CompetitionFinals): Promise<void> {
     await setDoc(doc(db, 'finals_admin_data', 'current'), data, { merge: true });
 }
+
+    

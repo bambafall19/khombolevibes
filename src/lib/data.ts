@@ -406,3 +406,5 @@ export async function getAdminFinalsData(): Promise<CompetitionFinals> {
     return defaultCompetitionFinals;
   }
 }
+
+    
