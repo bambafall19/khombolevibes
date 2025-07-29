@@ -67,11 +67,14 @@ const StandingTable = ({poule}: {poule: NavetanePoule}) => {
     )
 }
 
-const MatchTeamDisplay = ({ teamData }: { teamData?: TeamData }) => {
-    if (!teamData || !teamData.name) return <div className="font-bold w-full text-muted-foreground">À définir</div>;
+const MatchTeamDisplay = ({ teamData, justify = 'start' }: { teamData?: TeamData, justify?: 'start' | 'end' }) => {
+    if (!teamData || !teamData.name) return <div className="font-medium w-full text-muted-foreground flex-1 text-center">À définir</div>;
     return (
-        <div className="flex items-center gap-2 font-bold w-full">
-            {teamData.logoUrl && <Image src={teamData.logoUrl} alt={`Logo ${teamData.name}`} width={24} height={24} className="rounded-full object-cover" />}
+        <div className={cn(
+            "flex items-center gap-3 font-semibold w-full flex-1",
+            justify === 'end' ? 'justify-end flex-row-reverse' : 'justify-start'
+        )}>
+            {teamData.logoUrl && <Image src={teamData.logoUrl} alt={`Logo ${teamData.name}`} width={28} height={28} className="rounded-full object-cover" />}
             <span className="truncate" title={teamData.name}>{teamData.name}</span>
         </div>
     );
@@ -186,13 +189,13 @@ export default async function NavetanePage() {
                     <CardTitle className="font-headline text-3xl">Tirage de la Coupe du Maire</CardTitle>
                     <CardDescription>Affiches du tournoi.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 p-6">
+                <CardContent className="space-y-4 p-6">
                     {preliminaryMatch && preliminaryMatch.teamAData?.name ? (
-                       <div className="md:col-span-2 flex flex-col md:flex-row items-center justify-center gap-4 p-4 bg-muted/30 rounded-lg border-2 border-dashed">
+                       <div className="flex flex-col md:flex-row items-center justify-center gap-4 p-4 bg-muted/30 rounded-lg border-2 border-dashed fade-in">
                             <div className="flex items-center justify-between p-3 bg-card rounded-md shadow-inner min-w-[280px]">
-                                <MatchTeamDisplay teamData={preliminaryMatch.teamAData} />
+                                <MatchTeamDisplay teamData={preliminaryMatch.teamAData} justify="start"/>
                                 <span className="mx-4 text-primary font-bold text-lg">VS</span>
-                                <MatchTeamDisplay teamData={preliminaryMatch.teamBData} />
+                                <MatchTeamDisplay teamData={preliminaryMatch.teamBData} justify="end"/>
                             </div>
                             <Forward className="h-6 w-6 text-muted-foreground rotate-90 md:rotate-0" />
                             <div className="font-bold text-center flex items-center gap-2">
@@ -201,17 +204,21 @@ export default async function NavetanePage() {
                        </div>
                     ) : null}
 
-                    {coupeMatches && coupeMatches.length > 0 ? coupeMatches.map((match) => (
-                        <div key={match.id} className="flex items-center justify-center p-4 bg-muted/50 rounded-lg border transition-all hover:bg-muted/80 hover:shadow-md">
-                            <div className="w-2/5 text-right">
-                                <MatchTeamDisplay teamData={match.teamAData} />
-                            </div>
-                            <span className="mx-4 text-primary font-bold text-lg">VS</span>
-                            <div className="w-2/5 text-left">
-                                <MatchTeamDisplay teamData={match.teamBData} />
-                            </div>
+                    {coupeMatches && coupeMatches.length > 0 ? (
+                        <div className="space-y-3">
+                            {coupeMatches.map((match, index) => (
+                                <div 
+                                    key={match.id} 
+                                    className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border transition-all hover:border-primary/50 hover:bg-muted/80 hover:shadow-md fade-in"
+                                    style={{ animationDelay: `${index * 50}ms` }}
+                                >
+                                    <MatchTeamDisplay teamData={match.teamAData} justify="start" />
+                                    <span className="mx-4 text-primary font-bold text-2xl">VS</span>
+                                    <MatchTeamDisplay teamData={match.teamBData} justify="end" />
+                                </div>
+                            ))}
                         </div>
-                    )) : (
+                    ) : (
                        (!preliminaryMatch || !preliminaryMatch.teamAData?.name) && <p className="text-center col-span-full py-16 text-muted-foreground">Les matchs de la coupe seront bientôt disponibles.</p>
                     )}
                 </CardContent>
