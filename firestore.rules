@@ -1,26 +1,96 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-  
-    // Default rule: public read, admin-only write
-    match /{document=**} {
-      allow read: if true;
-      allow write: if request.auth != null;
+
+    // Helper function to check if a user is an authenticated admin
+    function isAdmin() {
+      return request.auth != null;
     }
 
-    // Exception: anyone can create comments
+    // Publicly readable collections
+    match /articles/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /categories/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /polls/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+      // Allow voting by anyone, but only specific fields can be updated
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['options', 'totalVotes']);
+    }
+    
+    match /teams/{document=**} {
+        allow read: if true;
+        allow write: if isAdmin();
+    }
+    
+    match /sponsors_public_view/{document=**} {
+        allow read: if true;
+        allow write: if isAdmin();
+    }
+
+    match /media_public_view/{document=**} {
+        allow read: if true;
+        allow write: if isAdmin();
+    }
+
+    match /navetane_public_views/{document=**} {
+        allow read: if true;
+        allow write: if isAdmin();
+    }
+    
+    match /navetane_stats/public_view {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /finals_public_view/{document=**} {
+        allow read: if true;
+        allow write: if isAdmin();
+    }
+
+    // Comments can be read by anyone, and created by anyone
     match /comments/{commentId} {
       allow read: if true;
       allow create: if true;
-      allow update, delete: if request.auth != null;
+      allow delete: if isAdmin();
+    }
+
+    // Admin-only write collections (read is often public through views)
+    match /media/{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    match /navetane_poules/{document=**} {
+      allow read, write: if isAdmin();
     }
     
-    // Exception: anyone can vote on polls
-    match /polls/{pollId} {
-        allow read: if true;
-        // Allow write only to update votes, not to change the poll structure
-        allow write: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['options', 'totalVotes']);
+    match /navetane_coupe_matches/{document=**} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /navetane_preliminary_match/{document=**} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /navetane_stats/admin_data {
+      allow read, write: if isAdmin();
+    }
+
+    match /sponsors/{document=**} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /finals_admin_data/{document=**} {
+        allow read, write: if isAdmin();
     }
   }
 }
