@@ -1,3 +1,4 @@
+
 // src/lib/actions.ts
 'use client';
 
@@ -108,6 +109,10 @@ export async function updateArticle(id: string, articleData: Partial<Omit<Articl
     
     if ('imageUrl2' in articleData && articleData.imageUrl2 === '') {
         updatedData.imageUrl2 = null;
+    }
+    
+    if ('imageUrl3' in articleData && articleData.imageUrl3 === '') {
+        updatedData.imageUrl3 = null;
     }
 
     await updateDoc(articleRef, updatedData);

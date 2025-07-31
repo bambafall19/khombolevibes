@@ -1,3 +1,4 @@
+
 // src/app/admin/articles/page.tsx
 'use client';
 
@@ -36,6 +37,8 @@ const articleSchema = z.object({
   imageHint: z.string().optional(),
   imageUrl2: z.string().url({ message: "Veuillez entrer une URL d'image valide." }).optional().or(z.literal('')),
   imageHint2: z.string().optional(),
+  imageUrl3: z.string().url({ message: "Veuillez entrer une URL d'image valide." }).optional().or(z.literal('')),
+  imageHint3: z.string().optional(),
   categoryId: z.string({ required_error: 'Veuillez sélectionner une catégorie.' }),
   isFeatured: z.boolean().default(false).optional(),
 });
@@ -58,6 +61,8 @@ function ArticleForm({ article, categories, onSave, onOpenChange, isOpen, childr
         imageHint: '',
         imageUrl2: '',
         imageHint2: '',
+        imageUrl3: '',
+        imageHint3: '',
         categoryId: '',
         isFeatured: false,
     }
@@ -77,12 +82,14 @@ function ArticleForm({ article, categories, onSave, onOpenChange, isOpen, childr
                 imageHint: article?.imageHint || '',
                 imageUrl2: article?.imageUrl2 || '',
                 imageHint2: article?.imageHint2 || '',
+                imageUrl3: article?.imageUrl3 || '',
+                imageHint3: article?.imageHint3 || '',
                 categoryId: article?.category.id || (availableCategories.length > 0 ? availableCategories[0].id : ''),
                 isFeatured: article?.isFeatured || false,
             });
         } else {
              reset({
-                title: '', slug: '', content: '', author: '', imageUrl: '', imageHint: '', imageUrl2: '', imageHint2: '',
+                title: '', slug: '', content: '', author: '', imageUrl: '', imageHint: '', imageUrl2: '', imageHint2: '', imageUrl3: '', imageHint3: '',
                 categoryId: availableCategories.length > 0 ? availableCategories[0].id : '',
                 isFeatured: false,
             });
@@ -164,6 +171,11 @@ function ArticleForm({ article, categories, onSave, onOpenChange, isOpen, childr
             {errors.imageUrl2 && <p className="text-sm text-destructive">{errors.imageUrl2.message}</p>}
           </div>
           <div className="grid gap-2">
+            <Label htmlFor="imageUrl3">URL de la troisième image (optionnel)</Label>
+            <Input id="imageUrl3" {...register('imageUrl3')} placeholder="https://..." />
+            {errors.imageUrl3 && <p className="text-sm text-destructive">{errors.imageUrl3.message}</p>}
+          </div>
+          <div className="grid gap-2">
             <Label htmlFor="content">Contenu de l'article</Label>
             <Textarea id="content" {...register('content')} className="min-h-[200px]" />
             <p className="text-xs text-muted-foreground">Les sauts de ligne seront conservés lors de la publication.</p>
@@ -184,6 +196,11 @@ function ArticleForm({ article, categories, onSave, onOpenChange, isOpen, childr
                 <Label htmlFor="imageHint2">Indice pour la deuxième image</Label>
                 <Input id="imageHint2" {...register('imageHint2')} placeholder="ex: crowd cheering" />
                 {errors.imageHint2 && <p className="text-sm text-destructive">{errors.imageHint2.message}</p>}
+            </div>
+            <div className="grid gap-2">
+                <Label htmlFor="imageHint3">Indice pour la troisième image</Label>
+                <Input id="imageHint3" {...register('imageHint3')} placeholder="ex: players celebrating" />
+                {errors.imageHint3 && <p className="text-sm text-destructive">{errors.imageHint3.message}</p>}
             </div>
           </div>
            <Controller

@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { getArticleBySlug, getArticles, getPollForArticle, getCommentsForArticle } from '@/lib/data';
 import { notFound } from 'next/navigation';
@@ -226,6 +227,20 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                         />
                     </div>
                 )}
+                
+                {article.imageUrl3 && (
+                    <div className="w-full rounded-xl overflow-hidden my-8 shadow-lg">
+                        <Image
+                        src={article.imageUrl3}
+                        alt={`Image tertiaire pour ${article.title}`}
+                        data-ai-hint={article.imageHint3}
+                        width={1200}
+                        height={675}
+                        className="object-contain w-full h-auto"
+                        />
+                    </div>
+                )}
+
 
                 <article className="prose prose-lg max-w-none text-foreground prose-a:text-primary hover:prose-a:text-primary/80 prose-strong:font-semibold">
                     <div className="whitespace-pre-wrap">{article.content}</div>
