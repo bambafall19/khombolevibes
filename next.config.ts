@@ -6,7 +6,7 @@ const withPWA = require('next-pwa')({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development',
-  runtimeCaching: [
+  /* runtimeCaching: [
     {
       urlPattern: /^https?.*/,
       handler: 'NetworkFirst',
@@ -22,7 +22,7 @@ const withPWA = require('next-pwa')({
         },
       },
     },
-  ],
+  ], */
 });
 
 const nextConfig: NextConfig = {
