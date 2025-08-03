@@ -39,6 +39,7 @@ const articleSchema = z.object({
   imageHint2: z.string().optional(),
   imageUrl3: z.string().url({ message: "Veuillez entrer une URL d'image valide." }).optional().or(z.literal('')),
   imageHint3: z.string().optional(),
+  videoUrl: z.string().url({ message: "Veuillez entrer une URL de vidéo valide." }).optional().or(z.literal('')),
   categoryId: z.string({ required_error: 'Veuillez sélectionner une catégorie.' }),
   isFeatured: z.boolean().default(false).optional(),
 });
@@ -63,6 +64,7 @@ function ArticleForm({ article, categories, onSave, onOpenChange, isOpen, childr
         imageHint2: '',
         imageUrl3: '',
         imageHint3: '',
+        videoUrl: '',
         categoryId: '',
         isFeatured: false,
     }
@@ -84,12 +86,13 @@ function ArticleForm({ article, categories, onSave, onOpenChange, isOpen, childr
                 imageHint2: article?.imageHint2 || '',
                 imageUrl3: article?.imageUrl3 || '',
                 imageHint3: article?.imageHint3 || '',
+                videoUrl: article?.videoUrl || '',
                 categoryId: article?.category.id || (availableCategories.length > 0 ? availableCategories[0].id : ''),
                 isFeatured: article?.isFeatured || false,
             });
         } else {
              reset({
-                title: '', slug: '', content: '', author: '', imageUrl: '', imageHint: '', imageUrl2: '', imageHint2: '', imageUrl3: '', imageHint3: '',
+                title: '', slug: '', content: '', author: '', imageUrl: '', imageHint: '', imageUrl2: '', imageHint2: '', imageUrl3: '', imageHint3: '', videoUrl: '',
                 categoryId: availableCategories.length > 0 ? availableCategories[0].id : '',
                 isFeatured: false,
             });
@@ -174,6 +177,11 @@ function ArticleForm({ article, categories, onSave, onOpenChange, isOpen, childr
             <Label htmlFor="imageUrl3">URL de la troisième image (optionnel)</Label>
             <Input id="imageUrl3" {...register('imageUrl3')} placeholder="https://..." />
             {errors.imageUrl3 && <p className="text-sm text-destructive">{errors.imageUrl3.message}</p>}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="videoUrl">URL de la vidéo (optionnel)</Label>
+            <Input id="videoUrl" {...register('videoUrl')} placeholder="https://www.youtube.com/watch?v=..." />
+            {errors.videoUrl && <p className="text-sm text-destructive">{errors.videoUrl.message}</p>}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="content">Contenu de l'article</Label>

@@ -101,6 +101,23 @@ const YouTubeIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 )
 
+function getYouTubeEmbedUrl(url: string): string | null {
+    if (!url) return null;
+    let videoId = null;
+    // Regular YouTube watch URL
+    const urlMatch = url.match(/^https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/);
+    if (urlMatch) {
+        videoId = urlMatch[1];
+    } else {
+        // Shortened youtu.be URL
+        const shortUrlMatch = url.match(/^https?:\/\/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+        if (shortUrlMatch) {
+            videoId = shortUrlMatch[1];
+        }
+    }
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+}
+
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const slug = params.slug;
   const article = await getArticleBySlug(slug);
@@ -118,6 +135,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const relatedArticles = allArticles
     .filter(a => a.id !== article.id && a.category.id === article.category.id)
     .slice(0, 5);
+    
+  const embedUrl = article.videoUrl ? getYouTubeEmbedUrl(article.videoUrl) : null;
 
   const AsideContent = () => (
     <div className="space-y-8 lg:sticky top-8">
@@ -203,6 +222,19 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     </div>
                 </header>
 
+                 {embedUrl && (
+                    <div className="w-full aspect-video rounded-xl overflow-hidden mb-8 shadow-lg">
+                        <iframe
+                            className="w-full h-full"
+                            src={embedUrl}
+                            title="YouTube video player"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                )}
+
                 <div className="w-full rounded-xl overflow-hidden mb-8 shadow-lg">
                     <Image
                     src={article.imageUrl}
@@ -260,5 +292,3 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     </div>
   );
 }
-
-    

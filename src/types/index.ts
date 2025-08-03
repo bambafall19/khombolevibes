@@ -1,4 +1,5 @@
 
+
 export type Category = {
   id: string;
   name: string;
@@ -18,6 +19,7 @@ export type Article = {
   imageHint2?: string;
   imageUrl3?: string | null;
   imageHint3?: string;
+  videoUrl?: string | null;
   category: Category; 
   author: string;
   publishedAt: string; // ISO string date
