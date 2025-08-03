@@ -104,17 +104,29 @@ const YouTubeIcon = (props: React.SVGProps<SVGSVGElement>) => (
 function getYouTubeEmbedUrl(url: string): string | null {
     if (!url) return null;
     let videoId = null;
+    
     // Regular YouTube watch URL
-    const urlMatch = url.match(/^https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/);
-    if (urlMatch) {
-        videoId = urlMatch[1];
-    } else {
-        // Shortened youtu.be URL
-        const shortUrlMatch = url.match(/^https?:\/\/youtu\.be\/([a-zA-Z0-9_-]{11})/);
-        if (shortUrlMatch) {
-            videoId = shortUrlMatch[1];
+    const watchMatch = url.match(/^https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/);
+    if (watchMatch) {
+        videoId = watchMatch[1];
+    }
+
+    // Shortened youtu.be URL
+    if (!videoId) {
+        const shortMatch = url.match(/^https?:\/\/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+        if (shortMatch) {
+            videoId = shortMatch[1];
         }
     }
+
+    // Embed URL
+    if (!videoId) {
+        const embedMatch = url.match(/^https?:\/\/(?:www\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/);
+        if (embedMatch) {
+            videoId = embedMatch[1];
+        }
+    }
+
     return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
 }
 
