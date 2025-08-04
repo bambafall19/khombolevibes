@@ -3,6 +3,8 @@ import ArticleCard from '@/components/ArticleCard';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 
+export const revalidate = 60; // Revalidate every 60 seconds
+
 type CategoryPageProps = {
   params: {
     category: string;

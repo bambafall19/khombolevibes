@@ -15,6 +15,8 @@ import { Separator } from '@/components/ui/separator';
 import PublicityCard from '@/components/PublicityCard';
 import PollWidget from '@/components/PollWidget';
 
+export const revalidate = 60; // Revalidate every 60 seconds
+
 type ArticlePageProps = {
   params: {
     slug: string;
