@@ -76,8 +76,8 @@ export default async function MediaPage() {
                         </CarouselContent>
                         {item.imageUrls.length > 1 && (
                         <>
-                            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10" />
-                            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10" />
+                            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 hidden sm:flex" />
+                            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 hidden sm:flex" />
                         </>
                         )}
                     </Carousel>
