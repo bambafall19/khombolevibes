@@ -7,13 +7,14 @@ import Image from 'next/image';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
-import { User, Calendar, ArrowLeft } from 'lucide-react';
+import { User, Calendar, ArrowLeft, Share2 } from 'lucide-react';
 import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import CommentsSection from '@/components/CommentsSection';
 import { Separator } from '@/components/ui/separator';
 import PublicityCard from '@/components/PublicityCard';
 import PollWidget from '@/components/PollWidget';
+import ShareButton from '@/components/ShareButton';
 
 export const revalidate = 60; // Revalidate every 60 seconds
 
@@ -106,27 +107,21 @@ const YouTubeIcon = (props: React.SVGProps<SVGSVGElement>) => (
 function getYouTubeEmbedUrl(url: string): string | null {
     if (!url) return null;
     let videoId = null;
-    
-    // Regular YouTube watch URL
-    const watchMatch = url.match(/^https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/);
-    if (watchMatch) {
-        videoId = watchMatch[1];
-    }
-
-    // Shortened youtu.be URL
-    if (!videoId) {
-        const shortMatch = url.match(/^https?:\/\/youtu\.be\/([a-zA-Z0-9_-]{11})/);
-        if (shortMatch) {
-            videoId = shortMatch[1];
+    try {
+        const urlObj = new URL(url);
+        if (urlObj.hostname === 'youtu.be') {
+            videoId = urlObj.pathname.slice(1);
+        } else if (urlObj.hostname.includes('youtube.com')) {
+            if (urlObj.pathname === '/watch') {
+                videoId = urlObj.searchParams.get('v');
+            } else if (urlObj.pathname.startsWith('/embed/')) {
+                videoId = urlObj.pathname.split('/')[2];
+            }
         }
-    }
-
-    // Embed URL
-    if (!videoId) {
-        const embedMatch = url.match(/^https?:\/\/(?:www\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/);
-        if (embedMatch) {
-            videoId = embedMatch[1];
-        }
+    } catch (e) {
+        // Fallback for non-URL strings or other formats
+        const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+        videoId = match ? match[1] : null;
     }
 
     return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
@@ -151,6 +146,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     .slice(0, 5);
     
   const embedUrl = article.videoUrl ? getYouTubeEmbedUrl(article.videoUrl) : null;
+  const articleUrl = `https://khombolevibes.com/articles/${slug}`;
 
   const AsideContent = () => (
     <div className="space-y-8 lg:sticky top-8">
@@ -219,20 +215,23 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     {article.title}
                     </h1>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        <span>{article.author}</span>
-                    </div>
-                    <span className="hidden sm:inline">&middot;</span>
-                    <div className="flex items-center gap-2">
-                        <span>{article.category.name}</span>
-                    </div>
-                    <span className="hidden sm:inline">&middot;</span>
-                    <div className="flex items-center gap-2">
-                        <time dateTime={article.publishedAt}>
-                        {format(new Date(article.publishedAt), "d MMMM yyyy", { locale: fr })}
-                        </time>
-                    </div>
+                        <div className="flex items-center gap-2">
+                            <User className="w-4 h-4" />
+                            <span>{article.author}</span>
+                        </div>
+                        <span className="hidden sm:inline">&middot;</span>
+                        <div className="flex items-center gap-2">
+                            <span>{article.category.name}</span>
+                        </div>
+                        <span className="hidden sm:inline">&middot;</span>
+                        <div className="flex items-center gap-2">
+                            <time dateTime={article.publishedAt}>
+                            {format(new Date(article.publishedAt), "d MMMM yyyy", { locale: fr })}
+                            </time>
+                        </div>
+                        <div className="ml-auto">
+                            <ShareButton title={article.title} url={articleUrl} />
+                        </div>
                     </div>
                 </header>
 
