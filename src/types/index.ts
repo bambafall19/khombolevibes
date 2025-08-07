@@ -103,6 +103,11 @@ export type Team = {
   logoUrl: string;
 };
 
+export type TeamsPublicView = {
+    teams: Team[];
+    lastPublished?: string;
+}
+
 export type Comment = {
   id: string;
   articleId: string;

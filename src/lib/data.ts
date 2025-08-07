@@ -1,7 +1,7 @@
 // src/lib/data.ts
 import { collection, getDocs, doc, getDoc, query, where, orderBy, Timestamp } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Article, Category, Media, NavetanePoule, NavetaneCoupeMatch, Team, NavetanePreliminaryMatch, Comment, NavetanePublicView, NavetaneStats, FinalsBracket, CompetitionFinals, Poll, Sponsor, SponsorPublicView, MediaPublicView, NavetaneStatsPublicView } from '@/types';
+import type { Article, Category, Media, NavetanePoule, NavetaneCoupeMatch, Team, NavetanePreliminaryMatch, Comment, NavetanePublicView, NavetaneStats, FinalsBracket, CompetitionFinals, Poll, Sponsor, SponsorPublicView, MediaPublicView, NavetaneStatsPublicView, TeamsPublicView } from '@/types';
 
 let categoriesCache: Category[] | null = null;
 let teamsCache: Team[] | null = null;
@@ -9,6 +9,10 @@ let mediaCache: Media[] | null = null;
 
 const defaultSponsorPublicView: SponsorPublicView = {
     sponsors: [],
+};
+
+const defaultTeamsPublicView: TeamsPublicView = {
+    teams: [],
 };
 
 const defaultMediaPublicView: MediaPublicView = {
@@ -229,15 +233,29 @@ export async function getAdminPreliminaryMatch(): Promise<NavetanePreliminaryMat
 
 // --- Team Management (Firestore) ---
 const teamsCollection = collection(db, 'teams');
+const teamsPublicViewDoc = doc(db, 'teams_public_view', 'live');
 
-export async function getTeams(): Promise<Team[]> {
-    if (teamsCache) {
+export async function getTeams(forceRefresh = false): Promise<Team[]> {
+    if (teamsCache && !forceRefresh) {
         return teamsCache;
     }
     const snapshot = await getDocs(query(teamsCollection, orderBy('name')));
     const teams = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Team));
     teamsCache = teams;
     return teams;
+}
+
+export async function getPublicTeams(): Promise<Team[]> {
+    try {
+        const docSnap = await getDoc(teamsPublicViewDoc);
+        if (docSnap.exists()) {
+            return (docSnap.data() as TeamsPublicView).teams;
+        }
+        return await getTeams(true); // Fallback for build
+    } catch (error) {
+        console.warn("Could not fetch public teams view, falling back to admin data. This is expected during build time.", error);
+        return await getTeams(true);
+    }
 }
 
 

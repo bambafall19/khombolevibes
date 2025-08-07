@@ -3,12 +3,12 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { getTeams } from '@/lib/data';
-import { addTeam, updateTeam, deleteTeam } from '@/lib/actions';
+import { addTeam, updateTeam, deleteTeam, publishTeams } from '@/lib/actions';
 import type { Team } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Pencil, PlusCircle, Trash2, Loader2, ArrowLeft, Users } from 'lucide-react';
+import { Pencil, PlusCircle, Trash2, Loader2, ArrowLeft, UploadCloud } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -107,6 +107,7 @@ export default function ManageTeamsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [isPublishing, setIsPublishing] = useState(false);
   const { toast } = useToast();
 
   const fetchTeams = async () => {
@@ -151,6 +152,19 @@ export default function ManageTeamsPage() {
     }
   }
 
+  const handlePublish = async () => {
+    setIsPublishing(true);
+    try {
+      await publishTeams();
+      toast({ title: "Publication réussie", description: "Les données des équipes ont été publiées sur le site." });
+    } catch (error) {
+      console.error("Failed to publish teams:", error);
+      toast({ variant: "destructive", title: "Erreur de publication", description: "Impossible de publier les équipes." });
+    } finally {
+      setIsPublishing(false);
+    }
+  }
+
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <Button variant="outline" asChild className="mb-6">
@@ -159,26 +173,32 @@ export default function ManageTeamsPage() {
           Retour au tableau de bord
         </Link>
       </Button>
-      <header className="flex justify-between items-center mb-8">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
             <h1 className="font-headline text-4xl font-bold text-primary">Gérer les Équipes</h1>
             <p className="mt-2 text-muted-foreground">
                 Ajoutez, modifiez ou supprimez les équipes.
             </p>
         </div>
-        <TeamForm onSave={fetchTeams} onOpenChange={setIsFormOpen} team={selectedTeam}>
-           <Button onClick={handleAddClick}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Ajouter une équipe
+        <div className="flex gap-2">
+            <TeamForm onSave={fetchTeams} onOpenChange={setIsFormOpen} team={null}>
+            <Button>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Ajouter une équipe
+                </Button>
+            </TeamForm>
+             <Button onClick={handlePublish} disabled={isPublishing}>
+                {isPublishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
+                {isPublishing ? "Publication..." : "Publier"}
             </Button>
-        </TeamForm>
+        </div>
       </header>
 
       <Card>
         <CardHeader>
           <CardTitle>Liste des Équipes</CardTitle>
           <CardDescription>
-            Voici toutes les équipes enregistrées.
+            Voici toutes les équipes enregistrées. Cliquez sur "Publier" pour rendre les modifications visibles.
           </CardDescription>
         </CardHeader>
         <CardContent>

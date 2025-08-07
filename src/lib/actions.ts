@@ -6,7 +6,7 @@
 import { collection, getDocs, doc, getDoc, query, where, orderBy, addDoc, updateDoc, deleteDoc, serverTimestamp, Timestamp, setDoc, writeBatch, runTransaction } from 'firebase/firestore';
 import { db } from './firebase';
 import { getCategories, getTeams, getSponsors, getAdminNavetanePoules, getAdminNavetaneCoupeMatches, getAdminPreliminaryMatch, getAdminFinalsData, generateExcerpt, getArticles, getNavetanePageData, getNavetaneStatsPageData, getPublicSponsors, getAdminMedia } from './data';
-import type { Article, Category, Media, NavetanePoule, NavetaneCoupeMatch, Team, NavetanePreliminaryMatch, Comment, NavetanePublicView, NavetaneStats, PlayerRank, Match, TeamData, Sponsor, SponsorPublicView, NavetaneStatsPublicView, CompetitionFinals, Poll, PollOption, NavetaneTeam, MediaPublicView } from '@/types';
+import type { Article, Category, Media, NavetanePoule, NavetaneCoupeMatch, Team, NavetanePreliminaryMatch, Comment, NavetanePublicView, NavetaneStats, PlayerRank, Match, TeamData, Sponsor, SponsorPublicView, NavetaneStatsPublicView, CompetitionFinals, Poll, PollOption, NavetaneTeam, MediaPublicView, TeamsPublicView } from '@/types';
 import { nanoid } from 'nanoid';
 
 export async function voteOnPoll(pollId: string, optionId: string): Promise<Poll> {
@@ -270,6 +270,20 @@ export async function deleteSponsor(id: string) {
 }
 
 // --- Publish Actions ---
+export async function publishTeams(): Promise<void> {
+    try {
+        const teams = await getTeams(true); // force refresh
+        const publicData: Omit<TeamsPublicView, 'lastPublished'> & { lastPublished: any } = {
+            teams,
+            lastPublished: serverTimestamp(),
+        };
+        await setDoc(doc(db, 'teams_public_view', 'live'), publicData);
+    } catch (e) {
+        console.error("Failed to publish teams data", e);
+        throw e;
+    }
+}
+
 export async function publishMedia(): Promise<void> {
     try {
         const media = await getAdminMedia(true); // force refresh
