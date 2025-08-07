@@ -316,7 +316,7 @@ export async function publishNavetanePageData(): Promise<void> {
         const [poules, coupeMatches, allTeams, preliminaryMatch] = await Promise.all([
             getAdminNavetanePoules(),
             getAdminNavetaneCoupeMatches(),
-            getTeams(),
+            getTeams(true), // Force refresh to get latest team data
             getAdminPreliminaryMatch(),
         ]);
 
@@ -362,7 +362,7 @@ export async function publishNavetanePageData(): Promise<void> {
 export async function updateAndPublishNavetaneStat(stats: NavetaneStats) {
     await setDoc(doc(db, 'navetane_stats', 'admin_data'), stats, { merge: true });
 
-    const allTeams = await getTeams();
+    const allTeams = await getTeams(true); // Force refresh
     const teamsMapById = new Map(allTeams.map(t => [t.id, { name: t.name, logoUrl: t.logoUrl }]));
     const teamsMapByName = new Map(allTeams.map(t => [t.name, { name: t.name, logoUrl: t.logoUrl }]));
 
@@ -397,7 +397,7 @@ export async function updateAndPublishNavetaneStat(stats: NavetaneStats) {
 
 export async function publishFinalsData(): Promise<void> {
     const adminData = await getAdminFinalsData();
-    const teams = await getTeams();
+    const teams = await getTeams(true); // Force refresh
     const teamsMap = new Map(teams.map(t => [t.id, t]));
 
     const enrichBracket = (bracket: FinalsBracket): FinalsBracket => {
