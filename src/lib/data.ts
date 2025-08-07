@@ -236,12 +236,14 @@ const teamsCollection = collection(db, 'teams');
 const teamsPublicViewDoc = doc(db, 'teams_public_view', 'live');
 
 export async function getTeams(forceRefresh = false): Promise<Team[]> {
+    // This function will now ALWAYS fetch from Firestore if forceRefresh is true,
+    // ignoring the cache, which is critical for the publish actions.
     if (teamsCache && !forceRefresh) {
         return teamsCache;
     }
     const snapshot = await getDocs(query(teamsCollection, orderBy('name')));
     const teams = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Team));
-    teamsCache = teams;
+    teamsCache = teams; // Update cache
     return teams;
 }
 
@@ -304,7 +306,7 @@ export async function getPollForArticle(articleId: string): Promise<Poll | null>
             const pollDoc = snapshot.docs[0];
             return { id: pollDoc.id, ...pollDoc.data() } as Poll;
         } catch (retryError) {
-            console.error("Retry poll fetch failed:", retryError);
+            console.error("Retry poll failed:", retryError);
             return null;
         }
     }
@@ -424,5 +426,3 @@ export async function getAdminFinalsData(): Promise<CompetitionFinals> {
     return defaultCompetitionFinals;
   }
 }
-
-    
