@@ -374,7 +374,8 @@ export async function publishNavetanePageData(): Promise<void> {
 export async function updateAndPublishNavetaneStat(stats: NavetaneStats) {
     await setDoc(doc(db, 'navetane_stats', 'admin_data'), stats, { merge: true });
 
-    const allTeams = await getTeams(true); // Force refresh
+    // Force a fresh fetch of all teams to ensure logos and names are up-to-date.
+    const allTeams = await getTeams(true); 
     const teamsMapById = new Map(allTeams.map(t => [t.id, { name: t.name, logoUrl: t.logoUrl }]));
     const teamsMapByName = new Map(allTeams.map(t => [t.name, { name: t.name, logoUrl: t.logoUrl }]));
 
@@ -406,6 +407,7 @@ export async function updateAndPublishNavetaneStat(stats: NavetaneStats) {
     
     await setDoc(doc(db, 'navetane_stats', 'public_view'), processedStats, { merge: true });
 }
+
 
 export async function publishFinalsData(): Promise<void> {
     const adminData = await getAdminFinalsData();
