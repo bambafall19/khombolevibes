@@ -316,15 +316,15 @@ export async function publishNavetanePageData(): Promise<void> {
         const [poules, coupeMatches, allTeams, preliminaryMatch] = await Promise.all([
             getAdminNavetanePoules(),
             getAdminNavetaneCoupeMatches(),
-            getTeams(true), // Force refresh to get latest team data
+            getTeams(true),
             getAdminPreliminaryMatch(),
         ]);
 
-        const teamsMap = new Map(allTeams.map(t => [t.name, { name: t.name, logoUrl: t.logoUrl }]));
+        const teamsMap = new Map(allTeams.map(t => [t.id, t]));
         
         const addTeamData = (teamName?: string): TeamData | undefined => {
             if (!teamName) return undefined;
-            const team = teamsMap.get(teamName);
+            const team = allTeams.find(t => t.name === teamName);
             return team ? { name: team.name, logoUrl: team.logoUrl } : { name: teamName, logoUrl: '' };
         };
 
@@ -332,6 +332,18 @@ export async function publishNavetanePageData(): Promise<void> {
             ...match,
             teamAData: addTeamData(match.teamA),
             teamBData: addTeamData(match.teamB),
+        }));
+        
+        const enrichedPoules = (poules || []).map(poule => ({
+            ...poule,
+            teams: (poule.teams || []).map(teamInPoule => {
+                const fullTeamData = teamsMap.get(teamInPoule.id);
+                return {
+                    ...teamInPoule,
+                    team: fullTeamData?.name || teamInPoule.team,
+                    logoUrl: fullTeamData?.logoUrl || teamInPoule.logoUrl,
+                };
+            })
         }));
 
         let enrichedPreliminaryMatch: NavetanePreliminaryMatch | null = null;
@@ -345,7 +357,7 @@ export async function publishNavetanePageData(): Promise<void> {
         }
         
         const publicData: Omit<NavetanePublicView, 'lastPublished'> & { lastPublished: any } = {
-            poules,
+            poules: enrichedPoules,
             coupeMatches: enrichedCoupeMatches,
             preliminaryMatch: enrichedPreliminaryMatch,
             lastPublished: serverTimestamp(),
