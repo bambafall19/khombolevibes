@@ -3,7 +3,7 @@
 
 import { useState, useMemo, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search } from 'lucide-react';
+import { Search, Download } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -75,6 +75,14 @@ export default function HomePageClient({ articles, navetaneData, statsData, spon
                         <p className="mt-2 text-lg text-muted-foreground">
                             Votre fenêtre sur l'actualité, la culture et la vie de Khombole.
                         </p>
+                         <div className="mt-6">
+                            <Button asChild>
+                              <a href="https://drive.google.com/uc?export=download&id=14aPsYQRuF_ScZwzw4x6stV5o0us2KYTa" target="_blank">
+                                <Download className="mr-2 h-4 w-4" />
+                                Télécharger le rapport de la 1ère journée
+                              </a>
+                            </Button>
+                        </div>
                     </div>
                 </div>
                 <form onSubmit={handleSearchSubmit} className="relative w-full max-w-xl mx-auto mt-8">
@@ -164,5 +172,3 @@ export default function HomePageClient({ articles, navetaneData, statsData, spon
     </div>
   );
 }
-
-    
