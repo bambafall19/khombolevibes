@@ -2,12 +2,14 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Trophy, Shield, Award, Forward, GitBranch } from 'lucide-react';
+import { Trophy, Shield, Award, Forward, GitBranch, Download } from 'lucide-react';
 import type { Metadata } from 'next';
 import { cn } from '@/lib/utils';
 import { getNavetanePageData } from '@/lib/data';
 import type { NavetanePoule, BracketMatch, FinalsBracket, TeamData } from '@/types';
 import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Navétane',
@@ -168,6 +170,14 @@ export default async function NavetanePage() {
         <p className="mt-4 text-lg max-w-2xl mx-auto text-muted-foreground">
           Toute l'actualité des compétitions de quartier de Khombole.
         </p>
+         <div className="mt-6">
+            <Button asChild>
+              <a href="/Rapport-KhomboleVibes-Journee1.pdf" target="_blank" download="Rapport-KhomboleVibes-Journee1.pdf">
+                <Download className="mr-2 h-4 w-4" />
+                Télécharger le rapport de la 1ère journée
+              </a>
+            </Button>
+        </div>
       </header>
 
       <Tabs defaultValue="championnat" className="w-full">
