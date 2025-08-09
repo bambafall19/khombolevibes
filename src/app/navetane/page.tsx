@@ -172,7 +172,7 @@ export default async function NavetanePage() {
         </p>
          <div className="mt-6">
             <Button asChild>
-              <a href="/Rapport-KhomboleVibes-Journee1.pdf" target="_blank" download="Rapport-KhomboleVibes-Journee1.pdf">
+              <a href="https://drive.google.com/uc?export=download&id=14aPsYQRuF_ScZwzw4x6stV5o0us2KYTa" target="_blank">
                 <Download className="mr-2 h-4 w-4" />
                 Télécharger le rapport de la 1ère journée
               </a>
