@@ -5,7 +5,6 @@ import { Separator } from '@/components/ui/separator';
 import type { Match } from '@/types';
 import { Calendar, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Badge } from './ui/badge';
 
 type MatchResultCardProps = {
   title: string;
