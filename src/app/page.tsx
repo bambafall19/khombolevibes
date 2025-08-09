@@ -2,8 +2,8 @@
 import { getHomePageData } from '@/lib/server-data';
 import HomePageClient from '@/components/HomePageClient';
 
-// Add this to revalidate the page every 60 seconds
-export const revalidate = 60;
+// This forces the page to be dynamically rendered, ensuring fresh data.
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   // Fetch data on the server, securely
